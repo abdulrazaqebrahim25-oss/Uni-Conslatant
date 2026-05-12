@@ -82,7 +82,8 @@ DATABASES = {
         'HOST': 'ep-twilight-mountain-aoar6ygp-pooler.c-2.ap-southeast-1.aws.neon.tech',
         'PORT': '5432',
         'OPTIONS': {
-            'sslmode': 'require',  
+            'sslmode': 'require', 
+            'connect_timeout': 30, 
         },
     }
 }
