@@ -76,11 +76,14 @@ WSGI_APPLICATION = 'uni_conslatant.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'uni_consultant',
-        'USER': 'postgres',
-        'PASSWORD': '1234',
-        'HOST': 'localhost',
-        'PORT': '5434',
+        'NAME': 'neondb',  
+        'USER': 'neondb_owner',
+        'PASSWORD': 'npg_2GhwL3zHeiXQ',
+        'HOST': 'ep-twilight-mountain-aoar6ygp-pooler.c-2.ap-southeast-1.aws.neon.tech',
+        'PORT': '5432',
+        'OPTIONS': {
+            'sslmode': 'require',  
+        },
     }
 }
 
