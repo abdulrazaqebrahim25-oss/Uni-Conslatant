@@ -8,6 +8,13 @@ class Course(models.Model):
     description = models.TextField(blank=True)
     credit = models.IntegerField()
 
+    prerequisites = models.ManyToManyField(
+    "self",
+    symmetrical=False,
+    related_name="required_for",
+    blank=True
+    )
+    
     def __str__(self):
         return f"{self.code} - {self.name}"
 
