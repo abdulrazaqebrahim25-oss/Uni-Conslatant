@@ -1,0 +1,54 @@
+{% extends 'main_app/base.html' %}
+{% block content %}
+<a href="{% url 'advisor_dashboard' %}" class="btn btn-outline-secondary mb-3">← Back</a>
+
+<h2>{{ student.name }}'s Course Plan</h2>
+<p class="text-muted">Major: <strong>{{ student.major }}</strong> | Email: {{ student.email }}</p>
+
+<table class="table table-bordered table-hover">
+  <thead class="table-dark">
+    <tr>
+      <th>Course</th>
+      <th>Code</th>
+      <th>Credits</th>
+      <th>Type</th>
+      <th>Prerequisites</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in course_data %}
+    <tr>
+      <td>{{ item.course.name }}</td>
+      <td>{{ item.course.code }}</td>
+      <td>{{ item.course.credit }}</td>
+      <td>
+        {% if item.type == 'Mandatory' %}
+          <span class="badge bg-danger">Mandatory</span>
+        {% else %}
+          <span class="badge bg-secondary">Elective</span>
+        {% endif %}
+      </td>
+      <td>
+        {% if item.prerequisites %}
+          {% for prereq in item.prerequisites %}
+            <span class="badge bg-warning text-dark">{{ prereq.code }}</span>
+          {% endfor %}
+        {% else %}
+          <span class="text-muted">None</span>
+        {% endif %}
+      </td>
+      <td>
+        {% if item.is_completed %}
+          <span class="badge bg-success">✔ Completed</span>
+        {% elif item.can_take %}
+          <span class="badge bg-primary">Available</span>
+        {% else %}
+          <span class="badge bg-secondary">Locked 🔒</span>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

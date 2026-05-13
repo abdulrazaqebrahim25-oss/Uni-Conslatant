@@ -1,0 +1,35 @@
+{% extends 'main_app/base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2>Advisor Dashboard — {{ advisor.name }}</h2>
+  <a href="{% url 'logout' %}" class="btn btn-outline-danger">Logout</a>
+</div>
+
+<h4>All Students</h4>
+<table class="table table-hover table-bordered">
+  <thead class="table-dark">
+    <tr>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Major</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for student in students %}
+    <tr>
+      <td>{{ student.name }}</td>
+      <td>{{ student.email }}</td>
+      <td>{{ student.major }}</td>
+      <td>
+        <a href="{% url 'student_detail' student.id %}" class="btn btn-sm btn-primary">
+          View Course Plan
+        </a>
+      </td>
+    </tr>
+    {% empty %}
+      <tr><td colspan="4" class="text-center text-muted">No students registered yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

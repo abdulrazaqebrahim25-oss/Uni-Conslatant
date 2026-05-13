@@ -73,10 +73,10 @@ class Advisor(models.Model):
 
 class Appointment(models.Model):
     STATUS_CHOICES = [
-        ("pending", "Pending")
-        ("approved", "Approved")
-        ("done", "Done")
-        ("canceled", "Canceled")
+        ("pending", "Pending"),
+        ("approved", "Approved"),
+        ("done", "Done"),
+        ("canceled", "Canceled"),
     ]
 
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
