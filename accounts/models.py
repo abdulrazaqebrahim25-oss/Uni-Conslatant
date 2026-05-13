@@ -60,6 +60,10 @@ class AdvisorProfile(models.Model):
         on_delete=models.CASCADE
     )
 
+    name = models.CharField(
+        max_length=100,
+         required=True )
+
     office = models.CharField(
         max_length=100,
         blank=True
