@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from main_app.models import Major
+from main_app.models import Major, Course
 # Create your models here.
 
 
@@ -43,6 +43,12 @@ class StudentProfile(models.Model):
         blank=True
     )
 
+    completed_courses = models.ManyToManyField(
+    Course,
+    related_name="completed_by_students",
+    blank=True
+    )
+
     def __str__(self):
         return self.user.username
 
@@ -57,6 +63,13 @@ class AdvisorProfile(models.Model):
     office = models.CharField(
         max_length=100,
         blank=True
+    )
+
+    major = models.ForeignKey(
+    Major,
+    on_delete=models.SET_NULL,
+    null=True,
+    blank=True
     )
 
     def __str__(self):
