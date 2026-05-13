@@ -13,12 +13,14 @@ class Appointment(models.Model):
 
     student = models.ForeignKey(
         StudentProfile,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name="appointments"
     )
 
     advisor = models.ForeignKey(
         AdvisorProfile,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name="appointments"
     )
 
     date = models.DateTimeField()
