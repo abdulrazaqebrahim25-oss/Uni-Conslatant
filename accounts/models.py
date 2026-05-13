@@ -62,7 +62,7 @@ class AdvisorProfile(models.Model):
 
     name = models.CharField(
         max_length=100,
-         required=True )
+        blank=True )
 
     office = models.CharField(
         max_length=100,
