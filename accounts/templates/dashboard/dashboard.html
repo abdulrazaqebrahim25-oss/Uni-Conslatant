@@ -1,0 +1,44 @@
+<h1>Student Dashboard</h1>
+
+<p>Welcome {{ student.user.first_name }}</p>
+
+<ul>
+
+    <li>
+        <a href="{% url 'student_profile' %}">
+            Profile
+        </a>
+    </li>
+
+    <li>
+        <a href="#">
+            Take Appointment
+        </a>
+    </li>
+
+    <li>
+        <a href="#">
+            Completed Courses
+        </a>
+    </li>
+
+    <li>
+        <a href="#">
+            Edit Registration Information
+        </a>
+    </li>
+
+    <li>
+
+        <form method="POST" action="{% url 'logout' %}">
+
+            {% csrf_token %}
+
+            <button type="submit">
+                Logout
+            </button>
+
+        </form>
+
+    </li>
+</ul>
