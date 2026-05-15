@@ -1,14 +1,49 @@
-<h1>Register</h1>
+<h1>Register Student</h1>
 
 <form method="POST">
-
     {% csrf_token %}
 
+    <h3>Account Info</h3>
 
-    {{ form.as_p }}
+    <label>Username</label>
+    {{ form.username }}
 
-    <button type="submit">
-        Register
-    </button>
+    <label>First Name</label>
+    {{ form.first_name }}
 
+    <label>Last Name</label>
+    {{ form.last_name }}
+
+    <label>Email</label>
+    {{ form.email }}
+
+    <h3>Academic Info</h3>
+
+    <label>Major</label>
+    {{ form.major }}
+
+    <label>Entry Year</label>
+    {{ form.entry_year }}
+
+    <label>Entry Semester</label>
+    {{ form.entry_semester }}
+
+    <label>Preferred Semesters / Year</label>
+    {{ form.preferred_semesters_per_year }}
+
+    <label>Budget Level</label>
+    {{ form.budget_level }}
+
+    <label>GPA (optional)</label>
+    {{ form.gpa }}
+
+    <h3>Password</h3>
+
+    <label>Password</label>
+    {{ form.password1 }}
+
+    <label>Confirm Password</label>
+    {{ form.password2 }}
+
+    <button type="submit">Register</button>
 </form>
