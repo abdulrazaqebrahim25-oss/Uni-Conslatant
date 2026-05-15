@@ -1,8 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from main_app.models import Major, Course
-# Create your models here.
 
+from main_app.models import Major, Course
 
 
 class User(AbstractUser):
@@ -19,50 +18,62 @@ class User(AbstractUser):
     )
 
     def __str__(self):
+
+        full_name = self.get_full_name()
+
+        if full_name:
+            return full_name
+
         return self.username
-
-
 
 
 class StudentProfile(models.Model):
 
     user = models.OneToOneField(
         User,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name="student_profile"
     )
 
     major = models.ForeignKey(
         Major,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True
+        blank=True,
+        related_name="students"
     )
 
     university_id = models.CharField(
         max_length=20,
+        unique=True,
+        null=True,
+        blank=True
+    )
+
+    gpa = models.DecimalField(
+        max_digits=3,
+        decimal_places=2,
+        null=True,
         blank=True
     )
 
     completed_courses = models.ManyToManyField(
-    Course,
-    related_name="completed_by_students",
-    blank=True
+        Course,
+        related_name="completed_by_students",
+        blank=True
     )
 
     def __str__(self):
-        return self.user.username
+        return str(self.user)
 
 
 class AdvisorProfile(models.Model):
 
     user = models.OneToOneField(
         User,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name="advisor_profile"
     )
-
-    name = models.CharField(
-        max_length=100,
-        blank=True )
 
     office = models.CharField(
         max_length=100,
@@ -70,11 +81,12 @@ class AdvisorProfile(models.Model):
     )
 
     major = models.ForeignKey(
-    Major,
-    on_delete=models.SET_NULL,
-    null=True,
-    blank=True
+        Major,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="advisors"
     )
 
     def __str__(self):
-        return self.user.username
+        return str(self.user)
