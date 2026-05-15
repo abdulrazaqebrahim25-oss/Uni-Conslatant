@@ -29,6 +29,23 @@ class User(AbstractUser):
 
 class StudentProfile(models.Model):
 
+    BUDGET_CHOICES = [
+    ("low", "Low Budget (150-350 BD)"),
+    ("medium", "Medium Budget (351-700 BD)"),
+    ("high", "Excellent Budget (701+ BD)"),
+    ]
+
+    SEMESTER_PREFERENCE_CHOICES = [
+        (2, "2 Semesters"),
+        (3, "3 Semesters"),
+    ]
+
+    ENTRY_SEMESTER_CHOICES = [
+        ("fall", "Fall"),
+        ("spring", "Spring"),
+        ("summer", "Summer"),
+    ]
+
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
@@ -55,6 +72,24 @@ class StudentProfile(models.Model):
         decimal_places=2,
         null=True,
         blank=True
+    )
+
+    entry_year = models.PositiveIntegerField()
+
+    entry_semester = models.CharField(
+        max_length=20,
+        choices=ENTRY_SEMESTER_CHOICES
+    )
+
+    preferred_semesters_per_year = models.IntegerField(
+        choices=SEMESTER_PREFERENCE_CHOICES,
+        default=3
+    )
+
+    budget_level = models.CharField(
+        max_length=20,
+        choices=BUDGET_CHOICES,
+        default="medium"
     )
 
     completed_courses = models.ManyToManyField(
@@ -89,4 +124,62 @@ class AdvisorProfile(models.Model):
     )
 
     def __str__(self):
-        return str(self.user)
+        return str(self.user) 
+    
+class AcademicSemester(models.Model):
+
+    SEMESTER_CHOICES = [
+        ("fall", "Fall"),
+        ("spring", "Spring"),
+        ("summer", "Summer"),
+    ]
+
+    SEMESTER_HOURS = {
+        "fall": (12, 20),
+        "spring": (12, 20),
+        "summer": (3, 9),
+    }
+
+    student = models.ForeignKey(
+        StudentProfile,
+        on_delete=models.CASCADE,
+        related_name="academic_semesters"
+    )
+
+    semester_type = models.CharField(
+        max_length=20,
+        choices=SEMESTER_CHOICES
+    )
+
+    academic_year = models.CharField(
+        max_length=20
+    )
+
+    start_date = models.DateField()
+
+    end_date = models.DateField()
+
+    completed_courses = models.ManyToManyField(
+        Course,
+        blank=True
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    class Meta:
+        ordering = ["start_date"]
+
+    def __str__(self):
+        return f"{self.student} - {self.semester_type} {self.academic_year}"
+
+    @property
+    def min_hours(self):
+
+        return self.SEMESTER_HOURS[self.semester_type][0]
+
+    @property
+    def max_hours(self):
+
+        return self.SEMESTER_HOURS[self.semester_type][1]

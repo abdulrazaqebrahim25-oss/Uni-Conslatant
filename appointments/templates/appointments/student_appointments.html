@@ -1,0 +1,27 @@
+<h1>My Appointments</h1>
+
+{% if appointments %}
+
+    <ul>
+
+        {% for appointment in appointments %}
+
+            <li>
+
+                {{ appointment.date }}
+                -
+                {{ appointment.advisor }}
+                -
+                {{ appointment.status }}
+
+            </li>
+
+        {% endfor %}
+
+    </ul>
+
+{% else %}
+
+    <p>No appointments found.</p>
+
+{% endif %}

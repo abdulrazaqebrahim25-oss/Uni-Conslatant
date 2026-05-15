@@ -2,8 +2,8 @@ from django.shortcuts import render, redirect
 from .forms import AppointmentForm
 from .models import Appointment
 from accounts.models import StudentProfile
+from django.contrib.auth.decorators import login_required
 
-# Create your views here.
 
 def create_appointment(request):
 
@@ -15,7 +15,11 @@ def create_appointment(request):
 
             appointment = form.save(commit=False)
 
-            appointment.student = request.user.studentprofile
+            student = StudentProfile.objects.get(
+                user=request.user
+            )
+
+            appointment.student = student
 
             appointment.save()
 
@@ -27,3 +31,23 @@ def create_appointment(request):
     return render(request, "appointments/create.html", {
         "form": form
     })
+
+
+@login_required
+def student_appointments(request):
+
+    student = StudentProfile.objects.get(
+        user=request.user
+    )
+
+    appointments = Appointment.objects.filter(
+        student=student
+    )
+
+    return render(
+        request,
+        'appointments/student_appointments.html',
+        {
+            'appointments': appointments
+        }
+    )
