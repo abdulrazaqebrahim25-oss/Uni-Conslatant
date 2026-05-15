@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 
-from .views import home
+from .uni_conslatant.views import home
 
 urlpatterns = [
 
