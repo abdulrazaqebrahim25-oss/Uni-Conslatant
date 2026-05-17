@@ -2,7 +2,7 @@ import requests
 from django.conf import settings
 
 def deepseek_chat(messages, model="deepseek-v4-pro"):
-    url = "https://api.deepseek.com/chat/completions"
+    url = settings.DEEPSEEK_BASE_URL
     headers = {
         "Authorization": f"Bearer {settings.DEEPSEEK_API_KEY}",
         "Content-Type": "application/json"

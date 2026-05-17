@@ -130,5 +130,13 @@ STATIC_URL = 'static/'
 
 AUTH_USER_MODEL = 'accounts.User' 
 
-DEEPSEEK_API_KEY = "sk-a020a9e9172047dba22c6b4a59430053"
+import environ
+import os
+
+# Initialise environment
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+
+# Use variables
+DEEPSEEK_API_KEY = env("DEEPSEEK_API_KEY")
 DEEPSEEK_BASE_URL = "https://api.deepseek.com/chat/completions"
