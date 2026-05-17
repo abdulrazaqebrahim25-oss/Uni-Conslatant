@@ -1,5 +1,6 @@
 from django import forms
 from .models import Appointment
+from django.utils import timezone
 
 
 class AppointmentForm(forms.ModelForm):
@@ -23,3 +24,13 @@ class AppointmentForm(forms.ModelForm):
         self.fields['date'].input_formats = (
             '%Y-%m-%dT%H:%M',
         )
+
+
+    def clean_date(self):
+
+        date = self.cleaned_data['date']
+
+        if date < timezone.now():
+            raise forms.ValidationError("You cannot select a past date.")
+
+        return date
