@@ -2,18 +2,93 @@
 
 {% block content %}
 
-<h1>Edit Student Profile</h1>
+<div class="row justify-content-center">
+  <div class="col-lg-7 col-md-9">
 
-<form method="POST">
+    <div class="card border-0 shadow-sm rounded-4 mb-5">
+      <div class="card-body p-4 p-md-5">
 
-    {% csrf_token %}
+        <h2 class="fw-bold mb-1">Edit Profile</h2>
+        <p class="text-muted mb-4">Update your academic details and completed courses.</p>
 
-    {{ form.as_p }}
+        <form method="POST" novalidate>
+          {% csrf_token %}
 
-    <button type="submit">
-        Save Changes
-    </button>
+          <!-- ── Academic Details ──────────────────────── -->
+          <h5 class="fw-semibold text-primary mb-3">Academic Details</h5>
 
-</form>
+          <div class="row g-3 mb-4">
+
+            <div class="col-12">
+              <label class="form-label">Major</label>
+              {{ form.major }}
+              {% if form.major.errors %}
+                <div class="text-danger small mt-1">{{ form.major.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">GPA <span class="text-muted fw-normal">(optional)</span></label>
+              {{ form.gpa }}
+              {% if form.gpa.errors %}
+                <div class="text-danger small mt-1">{{ form.gpa.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Budget Level</label>
+              {{ form.budget_level }}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Preferred Semesters per Year</label>
+              {{ form.preferred_semesters_per_year }}
+            </div>
+
+          </div>
+
+          <!-- ── Completed Courses ─────────────────────── -->
+          <h5 class="fw-semibold text-primary mb-1">Completed Courses</h5>
+          <p class="text-muted small mb-3">
+            Check every course you have already passed.
+          </p>
+
+          {% if form.completed_courses.field.queryset.exists %}
+            <div class="border rounded-3 p-3" style="max-height: 340px; overflow-y: auto;">
+              {% for checkbox in form.completed_courses %}
+                <div class="form-check mb-2">
+                  {{ checkbox.tag }}
+                  <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                    {{ checkbox.choice_label }}
+                  </label>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="alert alert-secondary">
+              No courses are available for your current major. Make sure your major is set correctly.
+            </div>
+          {% endif %}
+
+          {% if form.completed_courses.errors %}
+            <div class="text-danger small mt-1">{{ form.completed_courses.errors }}</div>
+          {% endif %}
+
+          <!-- ── Actions ──────────────────────────────── -->
+          <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary flex-grow-1 py-2 fw-semibold">
+              Save Changes
+            </button>
+            <a href="{% url 'student_profile' %}" class="btn btn-outline-secondary px-4">
+              Cancel
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
 
 {% endblock %}
