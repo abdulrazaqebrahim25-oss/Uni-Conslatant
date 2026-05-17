@@ -130,5 +130,5 @@ STATIC_URL = 'static/'
 
 AUTH_USER_MODEL = 'accounts.User' 
 
-LOGIN_REDIRECT_URL = "/accounts/dashboard/"
+LOGIN_REDIRECT_URL = "/accounts/redirect-dashboard/"
 LOGOUT_REDIRECT_URL = "/"

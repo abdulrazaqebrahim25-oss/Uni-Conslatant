@@ -1,27 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+
 <h1>Student Profile</h1>
 
-<p>Full Name: {{ student.user.first_name }} {{ student.user.last_name }}</p>
-
-<p>Username: {{ student.user.username }}</p>
-
-<p>Email: {{ student.user.email }}</p>
-
-<p>Major: {{ student.major }}</p>
-
-<p>GPA: {{ student.gpa }}</p>
-
-<p>Entry Year: {{ student.entry_year }}</p>
-
-<p>Entry Semester: {{ student.entry_semester }}</p>
-
-<p>Preferred Semesters:
-    {{ student.preferred_semesters_per_year }}
+<p>
+    Full Name:
+    {{ student.user.first_name }}
+    {{ student.user.last_name }}
 </p>
 
-<p>Budget Level:
-    {{ student.budget_level }}
+<p>
+    Email:
+    {{ student.user.email }}
+</p>
+
+<p>
+    Major:
+    {{ student.major }}
+</p>
+
+<p>
+    GPA:
+    {{ student.gpa }}
 </p>
 
 <a href="{% url 'dashboard' %}">
-    Back to Dashboard
+    Back
 </a>
+
+{% endblock %}

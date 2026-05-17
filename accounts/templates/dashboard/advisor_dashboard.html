@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Advisor Dashboard</h1>
+
+<p>
+    Welcome {{ advisor.user.first_name }}
+</p>
+
+<ul>
+
+    <li>
+        <a href="#">
+            Advisor Profile
+        </a>
+    </li>
+
+    <li>
+        <a href="#">
+            View Student Appointments
+        </a>
+    </li>
+
+    <li>
+        <a href="#">
+            Approve / Reject Appointments
+        </a>
+    </li>
+
+    <li>
+        <a href="#">
+            View Students
+        </a>
+    </li>
+
+    <li>
+        <a href="#">
+            Review Academic Plans
+        </a>
+    </li>
+
+    <li>
+        <a href="#">
+            AI Recommendations
+        </a>
+    </li>
+
+</ul>
+
+{% endblock %}

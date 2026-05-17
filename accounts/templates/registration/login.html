@@ -3,6 +3,9 @@
 <form method="POST">
     {% csrf_token %}
 
+    {{ form.non_field_errors }}
+
+
     {{ form.username.label_tag }}
     {{ form.username }}
 

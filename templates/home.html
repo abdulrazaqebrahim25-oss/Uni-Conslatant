@@ -1,17 +1,33 @@
-<h1>Welcome to Uni Consultant</h1>
+{% extends "base.html" %}
 
-<ul>
+{% block content %}
 
-    <li>
-        <a href="{% url 'login' %}">
-            Login
-        </a>
-    </li>
+<h1>
+    Welcome to Uni Consultant
+</h1>
 
-    <li>
-        <a href="{% url 'register' %}">
-            Register
-        </a>
-    </li>
+<p>
+    Academic Advising System
+</p>
 
-</ul>
+{% if not user.is_authenticated %}
+
+    <ul>
+
+        <li>
+            <a href="{% url 'login' %}">
+                Login
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'register' %}">
+                Register
+            </a>
+        </li>
+
+    </ul>
+
+{% endif %}
+
+{% endblock %}
