@@ -66,4 +66,17 @@ urlpatterns = [
         name="edit_advisor_profile"
     ),
 
+    path(
+        "advisor/students/",
+        views.advisor_students_view,
+        name="advisor_students"
+    ),
+
+    path(
+        "advisor/students/<int:student_id>/",
+        views.advisor_student_detail,
+        name="advisor_student_detail"
+    ),
+
 ]
+

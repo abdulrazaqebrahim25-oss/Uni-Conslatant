@@ -98,6 +98,14 @@ class StudentProfile(models.Model):
         blank=True
     )
 
+    advisor = models.ForeignKey(
+    'AdvisorProfile',
+    on_delete=models.SET_NULL,
+    null=True,
+    blank=True,
+    related_name="students"
+    )
+
     def __str__(self):
         return str(self.user)
 

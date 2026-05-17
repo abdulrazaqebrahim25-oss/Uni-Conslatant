@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Student Details</h1>
+
+<p><strong>Name:</strong> {{ student.user.get_full_name }}</p>
+
+<p><strong>Email:</strong> {{ student.user.email }}</p>
+
+<p><strong>Major:</strong> {{ student.major }}</p>
+
+<p><strong>GPA:</strong> {{ student.gpa }}</p>
+
+<p><strong>Entry Year:</strong> {{ student.entry_year }}</p>
+
+<a href="{% url 'advisor_dashboard' %}">
+    Back to Dashboard
+</a>
+
+{% endblock %}

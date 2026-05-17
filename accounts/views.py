@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import RegisterForm
 from .models import StudentProfile, AdvisorProfile
@@ -151,5 +151,41 @@ def edit_student_profile_view(request):
         "dashboard/edit_student_profile.html",
         {
             "form": form
+        }
+    )
+
+@login_required
+def advisor_students_view(request):
+
+    advisor = request.user.advisor_profile
+
+    students = StudentProfile.objects.filter(
+        advisor=advisor
+    )
+
+    return render(
+        request,
+        "dashboard/advisor_students.html",
+        {
+            "students": students
+        }
+    )
+
+@login_required
+def advisor_student_detail(request, student_id):
+
+    advisor = request.user.advisor_profile
+
+    student = get_object_or_404(
+        StudentProfile,
+        id=student_id,
+        advisor=advisor
+    )
+
+    return render(
+        request,
+        "dashboard/advisor_student_detail.html",
+        {
+            "student": student
         }
     )
