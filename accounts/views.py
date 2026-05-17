@@ -28,8 +28,6 @@ def register_view(request):
     )
 
 
-
-
 @login_required
 def dashboard_view(request):
 
@@ -55,3 +53,28 @@ def student_profile_view(request):
             "student": student
         }
     )
+
+
+
+# Advisor Dashboard View
+@login_required
+def advisor_dashboard_view(request):
+
+    advisor = request.user.advisor_profile
+
+    return render(
+        request,
+        "dashboard/advisor_dashboard.html",
+        {
+            "advisor": advisor
+        }
+    )
+
+@login_required
+def redirect_dashboard_view(request):
+
+    if request.user.role == "advisor":
+
+        return redirect("advisor_dashboard")
+
+    return redirect("dashboard")

@@ -36,4 +36,16 @@ urlpatterns = [
         name="logout"
     ),
 
+path(
+    "redirect-dashboard/",
+    views.redirect_dashboard_view,
+    name="redirect_dashboard"
+),
+
+path(
+    "advisor-dashboard/",
+    views.advisor_dashboard_view,
+    name="advisor_dashboard"
+),
+
 ]
