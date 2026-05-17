@@ -19,15 +19,21 @@ urlpatterns = [
     ),
 
     path(
-    "dashboard/",
-    views.dashboard_view,
-    name="dashboard"
+        "dashboard/",
+        views.dashboard_view,
+        name="dashboard"
     ),
 
     path(
-    "profile/",
-    views.student_profile_view,
-    name="student_profile"
+        "profile/",
+        views.student_profile_view,
+        name="student_profile"
+    ),
+
+    path(
+        "profile/edit/",
+        views.edit_student_profile_view,
+        name="edit_student_profile"
     ),
 
     path(
@@ -36,16 +42,28 @@ urlpatterns = [
         name="logout"
     ),
 
-path(
-    "redirect-dashboard/",
-    views.redirect_dashboard_view,
-    name="redirect_dashboard"
-),
+    path(
+        "redirect-dashboard/",
+        views.redirect_dashboard_view,
+        name="redirect_dashboard"
+    ),
 
-path(
-    "advisor-dashboard/",
-    views.advisor_dashboard_view,
-    name="advisor_dashboard"
-),
+    path(
+        "advisor-dashboard/",
+        views.advisor_dashboard_view,
+        name="advisor_dashboard"
+    ),
+
+    path(
+        "advisor-profile/",
+        views.advisor_profile_view,
+        name="advisor_profile"
+    ),
+
+    path(
+        "advisor-profile/edit/",
+        views.edit_advisor_profile_view,
+        name="edit_advisor_profile"
+    ),
 
 ]
