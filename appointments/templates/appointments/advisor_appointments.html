@@ -6,11 +6,12 @@
 
 {% if appointments %}
 
-    <table border="1">
+    <table border="1" cellpadding="10">
 
         <tr>
             <th>Student</th>
-            <th>Date</th>
+            <th>Start Time</th>
+            <th>End Time</th>
             <th>Status</th>
             <th>Actions</th>
         </tr>
@@ -25,14 +26,37 @@
                     {{ appointment.student.user.last_name }}
                 </td>
 
-                <!-- 📅 Date -->
+                <!-- 🕒 Start -->
                 <td>
-                    {{ appointment.date }}
+                    {{ appointment.start_time|date:"Y-m-d H:i" }}
+                </td>
+
+                <!-- 🕒 End -->
+                <td>
+                    {{ appointment.end_time|date:"Y-m-d H:i" }}
                 </td>
 
                 <!-- 📌 Status -->
                 <td>
-                    {{ appointment.status }}
+
+                    {% if appointment.status == "pending" %}
+
+                        ⏳ Pending
+
+                    {% elif appointment.status == "approved" %}
+
+                        ✅ Approved
+
+                    {% elif appointment.status == "done" %}
+
+                        🎓 Done
+
+                    {% elif appointment.status == "canceled" %}
+
+                        ❌ Canceled
+
+                    {% endif %}
+
                 </td>
 
                 <!-- ⚙️ Actions -->
@@ -40,30 +64,45 @@
 
                     {% if appointment.status == "pending" %}
 
+                        <!-- Approve -->
                         <form method="POST"
                               action="{% url 'update_appointment_status' appointment.id 'approved' %}"
                               style="display:inline;">
 
                             {% csrf_token %}
-                            <button type="submit">Approve</button>
+
+                            <button type="submit">
+                                Approve
+                            </button>
+
                         </form>
 
+                        <!-- Reject -->
                         <form method="POST"
                               action="{% url 'update_appointment_status' appointment.id 'canceled' %}"
                               style="display:inline;">
 
                             {% csrf_token %}
-                            <button type="submit">Reject</button>
+
+                            <button type="submit">
+                                Reject
+                            </button>
+
                         </form>
 
                     {% elif appointment.status == "approved" %}
 
+                        <!-- Mark Done -->
                         <form method="POST"
                               action="{% url 'update_appointment_status' appointment.id 'done' %}"
                               style="display:inline;">
 
                             {% csrf_token %}
-                            <button type="submit">Mark Done</button>
+
+                            <button type="submit">
+                                Mark Done
+                            </button>
+
                         </form>
 
                     {% else %}
