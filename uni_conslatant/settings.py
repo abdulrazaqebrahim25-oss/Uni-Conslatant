@@ -57,7 +57,7 @@ ROOT_URLCONF = 'uni_conslatant.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -140,3 +140,5 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 # Use variables
 DEEPSEEK_API_KEY = env("DEEPSEEK_API_KEY")
 DEEPSEEK_BASE_URL = "https://api.deepseek.com/chat/completions"
+LOGIN_REDIRECT_URL = "/accounts/redirect-dashboard/"
+LOGOUT_REDIRECT_URL = "/"

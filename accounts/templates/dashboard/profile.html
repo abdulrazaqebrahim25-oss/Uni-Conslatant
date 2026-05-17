@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Student Profile</h1>
+
+<p>
+    Full Name:
+    {{ student.user.first_name }}
+    {{ student.user.last_name }}
+</p>
+
+<p>
+    Email:
+    {{ student.user.email }}
+</p>
+
+<p>
+    Major:
+    {{ student.major }}
+</p>
+
+<p>
+    GPA:
+    {{ student.gpa }}
+</p>
+
+<p>
+    University ID:
+    {{ student.university_id }}
+</p>
+
+<p>
+    Entry Year:
+    {{ student.entry_year }}
+</p>
+
+<p>
+    Budget Level:
+    {{ student.budget_level }}
+</p>
+
+<hr>
+
+<a href="{% url 'edit_student_profile' %}">
+    Edit Profile
+</a>
+
+|
+
+<a href="{% url 'dashboard' %}">
+    Back
+</a>
+
+{% endblock %}

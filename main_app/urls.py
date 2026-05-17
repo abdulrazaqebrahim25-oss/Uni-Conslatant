@@ -6,5 +6,6 @@ urlpatterns = [
         "accounts/",
         include("accounts.urls")
     ),
+   
 
 ]

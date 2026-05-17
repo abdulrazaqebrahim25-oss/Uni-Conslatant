@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>My Appointments</h1>
+
+{% if appointments %}
+
+    <ul>
+
+        {% for appointment in appointments %}
+
+            <li>
+
+                <strong>Advisor:</strong>
+                {{ appointment.advisor.user.get_full_name }}
+
+                <br>
+
+                <strong>Start:</strong>
+                {{ appointment.start_time|date:"Y-m-d H:i" }}
+
+                <br>
+
+                <strong>End:</strong>
+                {{ appointment.end_time|date:"Y-m-d H:i" }}
+
+                <br>
+
+                <strong>Status:</strong>
+                {{ appointment.status }}
+
+            </li>
+
+            <hr>
+
+        {% endfor %}
+
+    </ul>
+
+{% else %}
+
+    <p>No appointments found.</p>
+
+{% endif %}
+
+{% endblock %}
