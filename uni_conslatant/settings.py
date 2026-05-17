@@ -10,17 +10,24 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+import environ
+import os
+
+# Initialise environment
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-iufm37jjij!1=^!69=9vyu^ro!xq9otvv8zc33-e91!0@10--+'
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -78,14 +85,14 @@ WSGI_APPLICATION = 'uni_conslatant.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'neondb',  
-        'USER': 'neondb_owner',
-        'PASSWORD': 'npg_2GhwL3zHeiXQ',
-        'HOST': 'ep-twilight-mountain-aoar6ygp-pooler.c-2.ap-southeast-1.aws.neon.tech',
-        'PORT': '5432',
+        'NAME': env("DB_NAME"),
+        'USER': env("DB_USER"),
+        'PASSWORD': env("DB_PASSWORD"),
+        'HOST': env("DB_HOST"),
+        'PORT': env("DB_PORT"),
         'OPTIONS': {
-            'sslmode': 'require', 
-            'connect_timeout': 60, 
+            'sslmode': 'require',
+            'connect_timeout': 60,
         },
     }
 }
@@ -130,12 +137,7 @@ STATIC_URL = 'static/'
 
 AUTH_USER_MODEL = 'accounts.User' 
 
-import environ
-import os
 
-# Initialise environment
-env = environ.Env()
-environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # Use variables
 DEEPSEEK_API_KEY = env("DEEPSEEK_API_KEY")
