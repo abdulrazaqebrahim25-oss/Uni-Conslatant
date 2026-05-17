@@ -130,3 +130,5 @@ STATIC_URL = 'static/'
 
 AUTH_USER_MODEL = 'accounts.User' 
 
+DEEPSEEK_API_KEY = "sk-a020a9e9172047dba22c6b4a59430053"
+DEEPSEEK_BASE_URL = "https://api.deepseek.com/chat/completions"
