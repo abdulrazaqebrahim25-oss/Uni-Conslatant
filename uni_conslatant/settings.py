@@ -130,5 +130,15 @@ STATIC_URL = 'static/'
 
 AUTH_USER_MODEL = 'accounts.User' 
 
+import environ
+import os
+
+# Initialise environment
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+
+# Use variables
+DEEPSEEK_API_KEY = env("DEEPSEEK_API_KEY")
+DEEPSEEK_BASE_URL = "https://api.deepseek.com/chat/completions"
 LOGIN_REDIRECT_URL = "/accounts/redirect-dashboard/"
 LOGOUT_REDIRECT_URL = "/"
