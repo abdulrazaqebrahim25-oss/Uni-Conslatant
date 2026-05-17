@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .forms import RegisterForm
 from .models import StudentProfile, AdvisorProfile
-
+from .forms import AdvisorProfileForm
+from .forms import StudentProfileForm
 
 # Create your views here.
 
@@ -78,3 +79,77 @@ def redirect_dashboard_view(request):
         return redirect("advisor_dashboard")
 
     return redirect("dashboard")
+
+@login_required
+def advisor_profile_view(request):
+
+    advisor = request.user.advisor_profile
+
+    return render(
+        request,
+        "dashboard/advisor_profile.html",
+        {
+            "advisor": advisor
+        }
+    )
+
+@login_required
+def edit_advisor_profile_view(request):
+
+    advisor = request.user.advisor_profile
+
+    if request.method == "POST":
+
+        form = AdvisorProfileForm(
+            request.POST,
+            instance=advisor
+        )
+
+        if form.is_valid():
+
+            form.save()
+
+            return redirect("advisor_profile")
+
+    else:
+
+        form = AdvisorProfileForm(instance=advisor)
+
+    return render(
+        request,
+        "dashboard/edit_advisor_profile.html",
+        {
+            "form": form
+        }
+    )
+
+
+@login_required
+def edit_student_profile_view(request):
+
+    student = request.user.student_profile
+
+    if request.method == "POST":
+
+        form = StudentProfileForm(
+            request.POST,
+            instance=student
+        )
+
+        if form.is_valid():
+
+            form.save()
+
+            return redirect("student_profile")
+
+    else:
+
+        form = StudentProfileForm(instance=student)
+
+    return render(
+        request,
+        "dashboard/edit_student_profile.html",
+        {
+            "form": form
+        }
+    )

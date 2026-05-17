@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.db import transaction
 from datetime import datetime
+from .models import AdvisorProfile
 
 from .models import User, StudentProfile
 from main_app.models import Major
@@ -82,3 +83,28 @@ class RegisterForm(UserCreationForm):
             )
 
         return user
+
+
+class StudentProfileForm(forms.ModelForm):
+
+    class Meta:
+
+        model = StudentProfile
+
+        fields = [
+            "major",
+            "gpa",
+            "budget_level",
+            "preferred_semesters_per_year",
+        ]
+
+
+class AdvisorProfileForm(forms.ModelForm):
+
+    class Meta:
+        model = AdvisorProfile
+
+        fields = [
+            "office",
+            "major",
+        ]
