@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Advisor Appointments</h1>
+
+{% if appointments %}
+
+    <table border="1">
+
+        <tr>
+            <th>Student</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+
+        {% for appointment in appointments %}
+
+            <tr>
+
+                <!-- 👤 Student -->
+                <td>
+                    {{ appointment.student.user.first_name }}
+                    {{ appointment.student.user.last_name }}
+                </td>
+
+                <!-- 📅 Date -->
+                <td>
+                    {{ appointment.date }}
+                </td>
+
+                <!-- 📌 Status -->
+                <td>
+                    {{ appointment.status }}
+                </td>
+
+                <!-- ⚙️ Actions -->
+                <td>
+
+                    {% if appointment.status == "pending" %}
+
+                        <form method="POST"
+                              action="{% url 'update_appointment_status' appointment.id 'approved' %}"
+                              style="display:inline;">
+
+                            {% csrf_token %}
+                            <button type="submit">Approve</button>
+                        </form>
+
+                        <form method="POST"
+                              action="{% url 'update_appointment_status' appointment.id 'canceled' %}"
+                              style="display:inline;">
+
+                            {% csrf_token %}
+                            <button type="submit">Reject</button>
+                        </form>
+
+                    {% elif appointment.status == "approved" %}
+
+                        <form method="POST"
+                              action="{% url 'update_appointment_status' appointment.id 'done' %}"
+                              style="display:inline;">
+
+                            {% csrf_token %}
+                            <button type="submit">Mark Done</button>
+                        </form>
+
+                    {% else %}
+
+                        -
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+    </table>
+
+{% else %}
+
+    <p>No appointments found.</p>
+
+{% endif %}
+
+{% endblock %}
