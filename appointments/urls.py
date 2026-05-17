@@ -9,4 +9,28 @@ urlpatterns = [
         views.student_appointments,
         name='student_appointments'
     ),
+    path(
+        'advisor/',
+        views.advisor_appointments,
+        name='advisor_appointments'
+    ),
+
+    path(
+        'update-status/<int:appointment_id>/<str:new_status>/',
+        views.update_appointment_status,
+        name='update_appointment_status'
+    ),
+
+    path(
+    "advisor/calendar/events/",
+    views.advisor_calendar_events,
+    name="advisor_calendar_events"
+    ),
+
+    path(
+    "advisor/calendar/",
+    views.advisor_calendar_view,
+    name="advisor_calendar"
+    ),
+
 ]
