@@ -1,11 +1,16 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+
 from .forms import AppointmentForm
 from .models import Appointment
-from accounts.models import StudentProfile
-from django.contrib.auth.decorators import login_required
 
 
+
+@login_required
 def create_appointment(request):
+
+    student = request.user.student_profile
 
     if request.method == "POST":
 
@@ -15,15 +20,19 @@ def create_appointment(request):
 
             appointment = form.save(commit=False)
 
-            student = StudentProfile.objects.get(
-                user=request.user
-            )
-
+            # ربط الطالب
             appointment.student = student
+
+            # ❗ منع الحجز في الماضي
+            if appointment.date < timezone.now():
+                form.add_error("date", "You cannot book an appointment in the past.")
+                return render(request, "appointments/create.html", {
+                    "form": form
+                })
 
             appointment.save()
 
-            return redirect("home")
+            return redirect("student_appointments")
 
     else:
         form = AppointmentForm()
@@ -36,13 +45,9 @@ def create_appointment(request):
 @login_required
 def student_appointments(request):
 
-    student = StudentProfile.objects.get(
-        user=request.user
-    )
+    student = request.user.student_profile
 
-    appointments = Appointment.objects.filter(
-        student=student
-    )
+    appointments = Appointment.objects.filter(student=student)
 
     return render(
         request,

@@ -1,3 +1,7 @@
+{% extends "base.html" %}
+
+{% block content %}
+
 <h1>My Appointments</h1>
 
 {% if appointments %}
@@ -25,3 +29,5 @@
     <p>No appointments found.</p>
 
 {% endif %}
+
+{% endblock %}
