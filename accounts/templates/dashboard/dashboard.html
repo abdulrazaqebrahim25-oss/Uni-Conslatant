@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Student Dashboard</h1>
+
+<p>
+    Welcome {{ student.user.first_name }}
+</p>
+
+<ul>
+
+    <li>
+        <a href="{% url 'create_appointment' %}">
+            Take Appointment
+        </a>
+    </li>
+
+    <li>
+        <a href="{% url 'student_appointments' %}">
+            My Appointments
+        </a>
+    </li>
+    
+    <li>
+        <a href="#">
+            Completed Courses
+        </a>
+    </li>
+
+    <li>
+        <a href="#">
+            Edit Registration Information
+        </a>
+    </li>
+
+</ul>
+
+{% endblock %}

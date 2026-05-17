@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <title>
+        Uni Consultant
+    </title>
+
+</head>
+
+<body>
+
+    <nav>
+
+        <a href="{% url 'home' %}">
+            Home
+        </a>
+
+        |
+
+        {% if user.is_authenticated %}
+
+            {% if user.role == "student" %}
+
+                <a href="{% url 'dashboard' %}">
+                    Student Dashboard
+                </a>
+
+                |
+
+                <a href="{% url 'student_profile' %}">
+                    Profile
+                </a>
+
+            {% elif user.role == "advisor" %}
+
+                <a href="{% url 'advisor_dashboard' %}">
+                    Advisor Dashboard
+                </a>
+
+                |
+
+                <a href="{% url 'advisor_profile' %}">
+                    Advisor Profile
+                </a>
+
+            {% endif %}
+
+            |
+
+            <form
+                method="POST"
+                action="{% url 'logout' %}"
+                style="display:inline;"
+            >
+
+                {% csrf_token %}
+
+                <button type="submit">
+                    Logout
+                </button>
+
+            </form>
+
+        {% else %}
+
+            <a href="{% url 'login' %}">
+                Login
+            </a>
+
+            |
+
+            <a href="{% url 'register' %}">
+                Register
+            </a>
+
+        {% endif %}
+
+    </nav>
+
+    <hr>
+
+    {% if user.is_authenticated %}
+
+        <p>
+            Logged in as {{ user.username }}
+        </p>
+
+        <hr>
+
+    {% endif %}
+
+    {% block content %}
+
+    {% endblock %}
+
+</body>
+
+</html>

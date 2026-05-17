@@ -57,7 +57,7 @@ ROOT_URLCONF = 'uni_conslatant.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -132,3 +132,5 @@ AUTH_USER_MODEL = 'accounts.User'
 
 DEEPSEEK_API_KEY = "sk-a020a9e9172047dba22c6b4a59430053"
 DEEPSEEK_BASE_URL = "https://api.deepseek.com/chat/completions"
+LOGIN_REDIRECT_URL = "/accounts/redirect-dashboard/"
+LOGOUT_REDIRECT_URL = "/"

@@ -23,7 +23,8 @@ class Appointment(models.Model):
         related_name="appointments"
     )
 
-    date = models.DateTimeField()
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
 
     status = models.CharField(
         max_length=20,
