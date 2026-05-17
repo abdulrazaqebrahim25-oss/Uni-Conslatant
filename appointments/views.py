@@ -1,12 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from django.shortcuts import get_object_or_404, redirect
-from .forms import AppointmentForm
-from .models import Appointment
 from django.http import JsonResponse
 
-
+from .forms import AppointmentForm
+from .models import Appointment
+from accounts.models import StudentProfile
 
 
 @login_required
@@ -22,15 +21,11 @@ def create_appointment(request):
 
             appointment = form.save(commit=False)
 
-            # ربط الطالب
             appointment.student = student
 
-            # ❗ منع الحجز في الماضي
-            if appointment.date < timezone.now():
-                form.add_error("date", "You cannot book an appointment in the past.")
-                return render(request, "appointments/create.html", {
-                    "form": form
-                })
+            if appointment.start_time < timezone.now():
+                form.add_error("start_time", "You cannot book an appointment in the past.")
+                return render(request, "appointments/create.html", {"form": form})
 
             appointment.save()
 
@@ -43,43 +38,32 @@ def create_appointment(request):
         "form": form
     })
 
-
 @login_required
 def student_appointments(request):
 
     student = request.user.student_profile
 
-    appointments = Appointment.objects.filter(student=student)
+    appointments = Appointment.objects.filter(
+        student=student
+    ).order_by("-start_time")
 
-    return render(
-        request,
-        'appointments/student_appointments.html',
-        {
-            'appointments': appointments
-        }
-    )
-
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from .models import Appointment
-
+    return render(request, "appointments/student_appointments.html", {
+        "appointments": appointments
+    })
 
 @login_required
 def advisor_appointments(request):
 
     advisor = request.user.advisor_profile
 
-    appointments = Appointment.objects.filter(advisor=advisor).order_by("-date")
+    appointments = Appointment.objects.filter(
+        advisor=advisor
+    ).order_by("-start_time")
 
-    return render(
-        request,
-        "appointments/advisor_appointments.html",
-        {
-            "appointments": appointments
-        }
-    )
+    return render(request, "appointments/advisor_appointments.html", {
+        "appointments": appointments
+    })
 
-@login_required
 def update_appointment_status(request, appointment_id, new_status):
 
     if request.method != "POST":
@@ -112,14 +96,29 @@ def advisor_calendar_events(request):
     events = []
 
     for appt in appointments:
+
+
+        color = {
+            "pending": "#f39c12",
+            "approved": "#3498db",
+            "done": "#2ecc71",
+            "canceled": "#e74c3c",
+        }.get(appt.status, "#95a5a6")
+
         events.append({
+            "id": appt.id,
             "title": appt.student.user.get_full_name(),
             "start": appt.start_time.isoformat(),
             "end": appt.end_time.isoformat(),
-            "status": appt.status,
+            "color": color,
+            "extendedProps": {
+                "status": appt.status,
+                "student": appt.student.user.username
+            }
         })
 
     return JsonResponse(events, safe=False)
+
 
 @login_required
 def advisor_calendar_view(request):
