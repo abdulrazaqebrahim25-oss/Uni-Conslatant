@@ -6,16 +6,16 @@
 
     <div style="margin-bottom: 15px;">
         <p>
-            <strong>{{ advisor.user.username }}</strong>
+            <strong>{{ advisor.username }}</strong>
         </p>
 
-        <a href="{% url 'chat' advisor.user.id %}">
+        <a href="{% url 'chat' advisor.id %}">
             Chat
         </a>
     </div>
 
 {% empty %}
 
-    <p>No advisors found in your major.</p>
+    <p>No advisors found.</p>
 
 {% endfor %}
