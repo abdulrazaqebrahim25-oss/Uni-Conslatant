@@ -14,4 +14,6 @@ urlpatterns = [
 
     path('appointments/', include('appointments.urls')),
 
+    path('chat/', include('chat.urls')),
+
 ]
