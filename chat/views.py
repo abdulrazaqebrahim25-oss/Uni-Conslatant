@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
 
 from .models import Message
 
 User = get_user_model()
+
 
 @login_required
 def chat_view(request, user_id):
@@ -47,13 +48,14 @@ def chat_view(request, user_id):
         "messages": messages
     })
 
+
 @login_required
 def advisors_list(request):
     advisors = User.objects.filter(role="advisor")
-
     return render(request, "chat/advisors_list.html", {
         "advisors": advisors
     })
+
 
 @login_required
 def chat_list(request):
@@ -78,3 +80,24 @@ def chat_list(request):
     return render(request, "chat/chat_list.html", {
         "chats": chat_users.values()
     })
+
+
+@login_required
+def fetch_messages(request, user_id):
+    other_user = get_object_or_404(User, id=user_id)
+
+    messages = Message.objects.filter(
+        sender__in=[request.user, other_user],
+        receiver__in=[request.user, other_user]
+    ).order_by("created_at")
+
+    data = [
+        {
+            "sender": msg.sender.username,
+            "content": msg.content,
+            "mine": msg.sender == request.user
+        }
+        for msg in messages
+    ]
+
+    return JsonResponse({"messages": data})
