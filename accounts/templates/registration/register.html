@@ -1,49 +1,311 @@
-<h1>Register Student</h1>
+{% extends "base.html" %}
 
-<form method="POST">
-    {% csrf_token %}
+{% block content %}
 
-    <h3>Account Info</h3>
+<div class="row justify-content-center">
+  <div class="col-lg-7 col-md-9">
 
-    <label>Username</label>
-    {{ form.username }}
+    <div class="card shadow-sm border-0 rounded-4 mb-5">
+      <div class="card-body p-4 p-md-5">
 
-    <label>First Name</label>
-    {{ form.first_name }}
+        <h2 class="fw-bold mb-1">Student Registration</h2>
+        <p class="text-muted mb-4">Fill in your details to create an account.</p>
 
-    <label>Last Name</label>
-    {{ form.last_name }}
+        <form method="POST" id="registerForm" novalidate>
+          {% csrf_token %}
 
-    <label>Email</label>
-    {{ form.email }}
+          <!-- ── Account Info ─────────────────────────────── -->
+          <h5 class="fw-semibold text-primary mt-2 mb-3">Account Info</h5>
 
-    <h3>Academic Info</h3>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Username</label>
+              {{ form.username }}
+              {% if form.username.errors %}
+                <div class="text-danger small mt-1">{{ form.username.errors }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email</label>
+              {{ form.email }}
+              {% if form.email.errors %}
+                <div class="text-danger small mt-1">{{ form.email.errors }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">First Name</label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}
+                <div class="text-danger small mt-1">{{ form.first_name.errors }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Last Name</label>
+              {{ form.last_name }}
+              {% if form.last_name.errors %}
+                <div class="text-danger small mt-1">{{ form.last_name.errors }}</div>
+              {% endif %}
+            </div>
+          </div>
 
-    <label>Major</label>
-    {{ form.major }}
+          <!-- ── Academic Info ───────────────────────────── -->
+          <h5 class="fw-semibold text-primary mt-4 mb-3">Academic Info</h5>
 
-    <label>Entry Year</label>
-    {{ form.entry_year }}
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Major</label>
+              {{ form.major }}
+              {% if form.major.errors %}
+                <div class="text-danger small mt-1">{{ form.major.errors }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">GPA <span class="text-muted fw-normal">(optional)</span></label>
+              {{ form.gpa }}
+              {% if form.gpa.errors %}
+                <div class="text-danger small mt-1">{{ form.gpa.errors }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Entry Year</label>
+              {{ form.entry_year }}
+              {% if form.entry_year.errors %}
+                <div class="text-danger small mt-1">{{ form.entry_year.errors }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Entry Semester</label>
+              {{ form.entry_semester }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Semesters / Year</label>
+              {{ form.preferred_semesters_per_year }}
+            </div>
+            <div class="col-12">
+              <label class="form-label">Budget Level</label>
+              {{ form.budget_level }}
+            </div>
+          </div>
 
-    <label>Entry Semester</label>
-    {{ form.entry_semester }}
+          <!-- ── Completed Courses ───────────────────────── -->
+          <h5 class="fw-semibold text-primary mt-4 mb-1">Previously Completed Courses</h5>
+          <p class="text-muted small mb-3">
+            Select your major first, then check every course you have already passed.
+            Leave all unchecked if you are starting fresh.
+          </p>
 
-    <label>Preferred Semesters / Year</label>
-    {{ form.preferred_semesters_per_year }}
+          <!-- Placeholder shown before a major is picked -->
+          <div id="courses-placeholder" class="alert alert-secondary py-3 text-center">
+            <span class="text-muted">← Select a major above to see available courses</span>
+          </div>
 
-    <label>Budget Level</label>
-    {{ form.budget_level }}
+          <!-- Stats bar (hidden until a major is chosen) -->
+          <div id="courses-stats" class="d-none mb-2 d-flex justify-content-between align-items-center">
+            <span class="small text-muted">
+              <span id="checked-count">0</span> selected
+            </span>
+            <div>
+              <button type="button" class="btn btn-outline-secondary btn-sm me-1" onclick="selectAll()">Select All</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearAll()">Clear</button>
+            </div>
+          </div>
 
-    <label>GPA (optional)</label>
-    {{ form.gpa }}
+          <!-- Course list container (populated by JS) -->
+          <div id="courses-container" class="d-none border rounded-3 p-3" style="max-height: 360px; overflow-y: auto;">
 
-    <h3>Password</h3>
+            <!-- Mandatory group -->
+            <div id="group-mandatory">
+              <p class="fw-semibold text-uppercase small text-danger mb-2 mt-1">
+                Mandatory
+              </p>
+              <div id="list-mandatory"></div>
+            </div>
 
-    <label>Password</label>
-    {{ form.password1 }}
+            <!-- Elective group -->
+            <div id="group-elective" class="mt-3">
+              <p class="fw-semibold text-uppercase small text-secondary mb-2">
+                Elective
+              </p>
+              <div id="list-elective"></div>
+            </div>
 
-    <label>Confirm Password</label>
-    {{ form.password2 }}
+          </div>
 
-    <button type="submit">Register</button>
-</form>
+          <!-- Hidden checkboxes that Django actually reads on POST -->
+          <div id="hidden-course-inputs" style="display:none;">
+            {{ form.completed_courses }}
+          </div>
+
+          {% if form.completed_courses.errors %}
+            <div class="text-danger small mt-1">{{ form.completed_courses.errors }}</div>
+          {% endif %}
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger mt-2">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <!-- ── Password ────────────────────────────────── -->
+          <h5 class="fw-semibold text-primary mt-4 mb-3">Password</h5>
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label">Password</label>
+              {{ form.password1 }}
+              {% if form.password1.errors %}
+                <div class="text-danger small mt-1">{{ form.password1.errors }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Confirm Password</label>
+              {{ form.password2 }}
+              {% if form.password2.errors %}
+                <div class="text-danger small mt-1">{{ form.password2.errors }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+            Create Account
+          </button>
+
+          <p class="text-center mt-3 mb-0 small">
+            Already have an account? <a href="{% url 'login' %}">Log in</a>
+          </p>
+
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── JavaScript: dynamic course filtering ──────────────────────────────── -->
+<script>
+  // Course data injected from Django view
+  const MAJOR_COURSES = {{ major_courses_json|safe }};
+
+  const majorSelect      = document.getElementById("id_major");
+  const placeholder      = document.getElementById("courses-placeholder");
+  const container        = document.getElementById("courses-container");
+  const statsBar         = document.getElementById("courses-stats");
+  const listMandatory    = document.getElementById("list-mandatory");
+  const listElective     = document.getElementById("list-elective");
+  const groupMandatory   = document.getElementById("group-mandatory");
+  const groupElective    = document.getElementById("group-elective");
+  const checkedCountEl   = document.getElementById("checked-count");
+
+  // The real Django checkboxes (hidden) — we sync our visible ones to these
+  const djangoCheckboxes = document.querySelectorAll("#hidden-course-inputs input[type=checkbox]");
+
+  function getDjangoCheckbox(courseId) {
+    return document.querySelector(`#hidden-course-inputs input[value="${courseId}"]`);
+  }
+
+  function updateCheckedCount() {
+    const count = document.querySelectorAll(".course-check:checked").length;
+    checkedCountEl.textContent = count;
+  }
+
+  function buildCourseRow(course) {
+    const div = document.createElement("div");
+    div.className = "form-check mb-2";
+    div.dataset.courseId = course.id;
+
+    // Check the state of the real Django checkbox
+    const realCb = getDjangoCheckbox(course.id);
+    const isChecked = realCb ? realCb.checked : false;
+
+    div.innerHTML = `
+      <input
+        class="form-check-input course-check"
+        type="checkbox"
+        id="vis_course_${course.id}"
+        data-id="${course.id}"
+        ${isChecked ? "checked" : ""}
+      >
+      <label class="form-check-label d-flex justify-content-between align-items-center w-100" for="vis_course_${course.id}">
+        <span>
+          <span class="fw-semibold">${course.code}</span>
+          <span class="text-muted"> — ${course.name}</span>
+        </span>
+        <span class="badge bg-light text-dark border ms-2">${course.credits} cr</span>
+      </label>
+    `;
+
+    // Sync visible → real Django checkbox
+    div.querySelector("input").addEventListener("change", function () {
+      const cb = getDjangoCheckbox(this.dataset.id);
+      if (cb) cb.checked = this.checked;
+      updateCheckedCount();
+    });
+
+    return div;
+  }
+
+  function renderCourses(majorId) {
+    listMandatory.innerHTML = "";
+    listElective.innerHTML  = "";
+
+    const courses = MAJOR_COURSES[majorId] || [];
+
+    if (courses.length === 0) {
+      placeholder.classList.remove("d-none");
+      container.classList.add("d-none");
+      statsBar.classList.add("d-none");
+      return;
+    }
+
+    let hasMandatory = false;
+    let hasElective  = false;
+
+    courses.forEach(course => {
+      const row = buildCourseRow(course);
+      if (course.type === "Mandatory") {
+        listMandatory.appendChild(row);
+        hasMandatory = true;
+      } else {
+        listElective.appendChild(row);
+        hasElective = true;
+      }
+    });
+
+    groupMandatory.style.display = hasMandatory ? "" : "none";
+    groupElective.style.display  = hasElective  ? "" : "none";
+
+    placeholder.classList.add("d-none");
+    container.classList.remove("d-none");
+    statsBar.classList.remove("d-none");
+    updateCheckedCount();
+  }
+
+  function selectAll() {
+    document.querySelectorAll(".course-check").forEach(cb => {
+      cb.checked = true;
+      const real = getDjangoCheckbox(cb.dataset.id);
+      if (real) real.checked = true;
+    });
+    updateCheckedCount();
+  }
+
+  function clearAll() {
+    document.querySelectorAll(".course-check").forEach(cb => {
+      cb.checked = false;
+      const real = getDjangoCheckbox(cb.dataset.id);
+      if (real) real.checked = false;
+    });
+    updateCheckedCount();
+  }
+
+  // When a major is selected, re-render courses and clear any previous selection
+  majorSelect.addEventListener("change", function () {
+    // Clear all real Django checkboxes first
+    djangoCheckboxes.forEach(cb => cb.checked = false);
+    renderCourses(this.value);
+  });
+
+  // On page load — if a major was already selected (e.g. form re-render after error), show its courses
+  if (majorSelect.value) {
+    renderCourses(majorSelect.value);
+  }
+</script>
+
+{% endblock %}

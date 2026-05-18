@@ -19,6 +19,20 @@ urlpatterns = [
     ),
 
     path(
+        "logout/",
+        auth_views.LogoutView.as_view(),
+        name="logout"
+    ),
+
+    path(
+        "redirect-dashboard/",
+        views.redirect_dashboard_view,
+        name="redirect_dashboard"
+    ),
+
+    # ── Student ──────────────────────────────────────────────────────────────
+
+    path(
         "dashboard/",
         views.dashboard_view,
         name="dashboard"
@@ -37,16 +51,12 @@ urlpatterns = [
     ),
 
     path(
-        "logout/",
-        auth_views.LogoutView.as_view(),
-        name="logout"
+        "courses/completed/",
+        views.student_completed_courses_view,
+        name="student_completed_courses"
     ),
 
-    path(
-        "redirect-dashboard/",
-        views.redirect_dashboard_view,
-        name="redirect_dashboard"
-    ),
+    # ── Advisor ──────────────────────────────────────────────────────────────
 
     path(
         "advisor-dashboard/",
@@ -79,4 +89,3 @@ urlpatterns = [
     ),
 
 ]
-

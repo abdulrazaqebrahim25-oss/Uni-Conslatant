@@ -2,20 +2,198 @@
 
 {% block content %}
 
-<h1>Student Details</h1>
+<!-- ── Header ───────────────────────────────────────────────────────────── -->
+<div class="d-flex justify-content-between align-items-start mb-4">
+  <div>
+    <a href="{% url 'advisor_students' %}" class="text-muted small d-block mb-1">
+      ← Back to Students
+    </a>
+    <h2 class="fw-bold mb-0">
+      {{ student.user.first_name }} {{ student.user.last_name }}
+    </h2>
+    <p class="text-muted mb-0">{{ student.user.email }}</p>
+  </div>
 
-<p><strong>Name:</strong> {{ student.user.get_full_name }}</p>
+  <!-- Quick stats -->
+  <div class="d-flex gap-3 text-center">
+    <div class="card border-0 shadow-sm rounded-3 px-4 py-2">
+      <div class="fw-bold fs-4 text-primary">{{ completed_count }}</div>
+      <div class="small text-muted">Completed</div>
+    </div>
+    <div class="card border-0 shadow-sm rounded-3 px-4 py-2">
+      <div class="fw-bold fs-4">{{ total_count }}</div>
+      <div class="small text-muted">Total</div>
+    </div>
+    {% if student.gpa %}
+    <div class="card border-0 shadow-sm rounded-3 px-4 py-2">
+      <div class="fw-bold fs-4 text-success">{{ student.gpa }}</div>
+      <div class="small text-muted">GPA</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
 
-<p><strong>Email:</strong> {{ student.user.email }}</p>
+<!-- ── Profile Summary ──────────────────────────────────────────────────── -->
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+  <div class="card-body p-4">
+    <h5 class="fw-semibold text-primary mb-3">Student Info</h5>
+    <div class="row g-2 small">
+      <div class="col-md-3 col-6">
+        <span class="text-muted">Major</span><br>
+        <strong>{{ student.major|default:"Not set" }}</strong>
+      </div>
+      <div class="col-md-3 col-6">
+        <span class="text-muted">University ID</span><br>
+        <strong>{{ student.university_id|default:"—" }}</strong>
+      </div>
+      <div class="col-md-3 col-6">
+        <span class="text-muted">Entry</span><br>
+        <strong>{{ student.get_entry_semester_display }} {{ student.entry_year }}</strong>
+      </div>
+      <div class="col-md-3 col-6">
+        <span class="text-muted">Budget</span><br>
+        <strong>{{ student.get_budget_level_display }}</strong>
+      </div>
+    </div>
+  </div>
+</div>
 
-<p><strong>Major:</strong> {{ student.major }}</p>
+<!-- ── Course Plan ──────────────────────────────────────────────────────── -->
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+  <div class="card-body p-4">
 
-<p><strong>GPA:</strong> {{ student.gpa }}</p>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="fw-semibold text-primary mb-0">Course Plan</h5>
 
-<p><strong>Entry Year:</strong> {{ student.entry_year }}</p>
+      <!-- Legend -->
+      <div class="d-flex gap-2 flex-wrap">
+        <span class="badge bg-success">✔ Completed</span>
+        <span class="badge bg-primary">Available</span>
+        <span class="badge bg-secondary">Locked</span>
+      </div>
+    </div>
 
-<a href="{% url 'advisor_dashboard' %}">
-    Back to Dashboard
-</a>
+    {% if course_data %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th>Course</th>
+              <th>Code</th>
+              <th class="text-center">Credits</th>
+              <th>Type</th>
+              <th>Prerequisites</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+
+          <!-- Mandatory courses first -->
+          <tbody>
+            {% for item in course_data %}
+              {% if item.type == "Mandatory" %}
+              <tr {% if item.is_completed %}class="table-success"{% endif %}>
+                <td>{{ item.course.name }}</td>
+                <td class="fw-semibold text-nowrap">{{ item.course.code }}</td>
+                <td class="text-center">{{ item.course.credit }}</td>
+                <td>
+                  <span class="badge bg-danger">Mandatory</span>
+                </td>
+                <td>
+                  {% if item.prerequisites %}
+                    {% for prereq in item.prerequisites %}
+                      <span class="badge bg-warning text-dark me-1">{{ prereq.code }}</span>
+                    {% endfor %}
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if item.is_completed %}
+                    <span class="badge bg-success">✔ Completed</span>
+                  {% elif item.can_take %}
+                    <span class="badge bg-primary">Available</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Locked 🔒</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endif %}
+            {% endfor %}
+          </tbody>
+
+          <!-- Separator -->
+          <tbody>
+            <tr class="table-light">
+              <td colspan="6" class="small text-muted fw-semibold py-1 ps-2">
+                ELECTIVE COURSES
+              </td>
+            </tr>
+          </tbody>
+
+          <!-- Elective courses -->
+          <tbody>
+            {% for item in course_data %}
+              {% if item.type == "Elective" %}
+              <tr {% if item.is_completed %}class="table-success"{% endif %}>
+                <td>{{ item.course.name }}</td>
+                <td class="fw-semibold text-nowrap">{{ item.course.code }}</td>
+                <td class="text-center">{{ item.course.credit }}</td>
+                <td>
+                  <span class="badge bg-secondary">Elective</span>
+                </td>
+                <td>
+                  {% if item.prerequisites %}
+                    {% for prereq in item.prerequisites %}
+                      <span class="badge bg-warning text-dark me-1">{{ prereq.code }}</span>
+                    {% endfor %}
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if item.is_completed %}
+                    <span class="badge bg-success">✔ Completed</span>
+                  {% elif item.can_take %}
+                    <span class="badge bg-primary">Available</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Locked 🔒</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endif %}
+            {% endfor %}
+          </tbody>
+
+        </table>
+      </div>
+
+    {% else %}
+      <div class="text-center text-muted py-4">
+        <p>No major assigned to this student yet — no course plan to display.</p>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<!-- ── Completed Courses Summary ────────────────────────────────────────── -->
+{% if completed_courses %}
+<div class="card border-0 shadow-sm rounded-4">
+  <div class="card-body p-4">
+    <h5 class="fw-semibold text-primary mb-3">
+      Completed Courses
+      <span class="badge bg-success ms-1">{{ completed_count }}</span>
+    </h5>
+    <div class="d-flex flex-wrap gap-2">
+      {% for course in completed_courses %}
+        <span class="badge bg-light text-dark border fs-6 fw-normal py-2 px-3">
+          <span class="fw-semibold">{{ course.code }}</span> — {{ course.name }}
+          <span class="text-muted ms-1">({{ course.credit }} cr)</span>
+        </span>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
 
 {% endblock %}
