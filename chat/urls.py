@@ -1,8 +1,12 @@
 from django.urls import path
-from .views import chat_view, advisors_list, chat_list
+from .views import chat_view, advisors_list, chat_list, fetch_messages
 
 urlpatterns = [
-    path('', chat_list, name='chat_list'),   
+    path('', chat_list, name='chat_list'),
     path('advisors/', advisors_list, name='advisors'),
+
+   
+    path('fetch/<int:user_id>/', fetch_messages, name='fetch_messages'),
+
     path('<int:user_id>/', chat_view, name='chat'),
 ]
