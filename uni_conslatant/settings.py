@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     'main_app',
     'accounts',
     'appointments',
+    'chat',
+   
 ]
 
 MIDDLEWARE = [
@@ -144,3 +146,5 @@ DEEPSEEK_API_KEY = env("DEEPSEEK_API_KEY")
 DEEPSEEK_BASE_URL = "https://api.deepseek.com/chat/completions"
 LOGIN_REDIRECT_URL = "/accounts/redirect-dashboard/"
 LOGOUT_REDIRECT_URL = "/"
+
+

@@ -1,0 +1,21 @@
+<h1>Advisors in Your Major</h1>
+
+<hr>
+
+{% for advisor in advisors %}
+
+    <div style="margin-bottom: 15px;">
+        <p>
+            <strong>{{ advisor.user.username }}</strong>
+        </p>
+
+        <a href="{% url 'chat' advisor.user.id %}">
+            Chat
+        </a>
+    </div>
+
+{% empty %}
+
+    <p>No advisors found in your major.</p>
+
+{% endfor %}
