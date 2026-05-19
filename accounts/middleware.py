@@ -1,5 +1,5 @@
+from django.contrib.auth import logout
 from django.shortcuts import redirect
-from django.contrib import messages
 
 
 class BlockSuperuserMiddleware:
@@ -9,24 +9,16 @@ class BlockSuperuserMiddleware:
 
     def __call__(self, request):
 
-
-        allowed_paths = [
-            "/admin/",
-        ]
-
         if (
-            request.user.is_authenticated
+            hasattr(request, "user")
+            and request.user.is_authenticated
             and request.user.is_superuser
         ):
 
-            if not request.path.startswith(tuple(allowed_paths)):
+            logout(request)
 
-                messages.error(
-                    request,
-                    "Superuser cannot access the main website."
-                )
-
-                return redirect("/admin/")
+            return redirect("login")
 
         response = self.get_response(request)
+
         return response
