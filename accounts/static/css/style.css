@@ -1,0 +1,60 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f5f7fb;
+    color: #1e293b;
+}
+
+/* Cards */
+.card {
+    border: none;
+    transition: 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+/* Tables */
+.table {
+    vertical-align: middle;
+}
+
+/* Navbar */
+.navbar-brand {
+    letter-spacing: -0.5px;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+/* Form Controls */
+.form-control,
+.form-select {
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+}
+
+/* Page Titles */
+.page-title {
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.page-subtitle {
+    color: #64748b;
+    margin-bottom: 2rem;
+}
+
+/* Dashboard cards */
+.stat-card {
+    border-radius: 20px;
+}
+
+/* Scroll areas */
+.custom-scroll {
+    max-height: 400px;
+    overflow-y: auto;
+}
