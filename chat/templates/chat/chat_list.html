@@ -1,22 +1,62 @@
-<h2>Chats</h2>
+{% extends "base.html" %}
 
-<a href="{% url 'home' %}">⬅ Back</a>
+{% block content %}
 
-<hr>
+<div class="d-flex justify-content-between align-items-center mb-4">
 
-{% for chat in chats %}
+    <div>
+        <h2 class="fw-bold mb-1">
+            Messages
+        </h2>
 
-    <div style="padding:10px; border-bottom:1px solid #ddd;">
-        
-        <a href="{% url 'chat' chat.user.id %}">
-            <strong>{{ chat.user.username }}</strong>
-        </a>
+        <p class="text-muted mb-0">
+            Your advisor conversations
+        </p>
+    </div>
 
-        <p>{{ chat.last_message }}</p>
-        <small>{{ chat.time }}</small>
+</div>
+
+<div class="card">
+
+    <div class="list-group list-group-flush">
+
+        {% for chat in chats %}
+
+            <a href="{% url 'chat' chat.user.id %}"
+               class="list-group-item list-group-item-action p-4">
+
+                <div class="d-flex justify-content-between align-items-start">
+
+                    <div>
+
+                        <div class="fw-bold mb-1">
+                            {{ chat.user.username }}
+                        </div>
+
+                        <div class="text-muted small">
+                            {{ chat.last_message }}
+                        </div>
+
+                    </div>
+
+                    <small class="text-muted">
+                        {{ chat.time }}
+                    </small>
+
+                </div>
+
+            </a>
+
+        {% empty %}
+
+            <div class="empty-state">
+                No conversations yet.
+            </div>
+
+        {% endfor %}
 
     </div>
 
-{% empty %}
-    <p>No chats yet</p>
-{% endfor %}
+</div>
+
+{% endblock %}

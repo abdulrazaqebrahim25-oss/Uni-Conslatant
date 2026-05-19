@@ -2,130 +2,170 @@
 
 {% block content %}
 
+<!-- Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <div>
-    <h2 class="fw-bold mb-0">Welcome, {{ student.user.first_name }} 👋</h2>
-    <p class="text-muted mb-0">{{ student.major|default:"No major set" }}</p>
-  </div>
-  <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm">Logout</a>
-</div>
 
-<!-- ── Semester Progress ──────────────────────────────────────────────────── -->
-<div class="card border-0 shadow-sm rounded-4 mb-4">
-  <div class="card-body p-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h5 class="fw-semibold mb-0 text-primary">Semester Progress</h5>
-      <span class="badge bg-primary rounded-pill fs-6">
-        {{ elapsed_count }} semester{{ elapsed_count|pluralize }} completed
-      </span>
+    <div>
+        <h2 class="fw-bold mb-1">
+            Welcome back, {{ student.user.first_name }}
+        </h2>
+
+        <p class="mb-0 text-muted">
+            {{ student.major|default:"No major selected" }}
+        </p>
     </div>
 
-    {% if elapsed_semesters %}
-      <div class="d-flex flex-wrap gap-2 mb-3">
-        {% for s in elapsed_semesters %}
-          <span class="badge rounded-pill bg-success py-2 px-3">
-            ✔ {{ s.label }} {{ s.year }}
-          </span>
-        {% endfor %}
-      </div>
-    {% else %}
-      <p class="text-muted mb-3">
-        Your first semester hasn't ended yet — nothing to show here.
-      </p>
-    {% endif %}
-
-    <p class="mb-0 small text-muted">
-      Current semester: <strong>{{ current_semester }}</strong> &nbsp;|&nbsp;
-      Enrolled since: <strong>{{ student.get_entry_semester_display }} {{ student.entry_year }}</strong>
-    </p>
-  </div>
-</div>
-
-<!-- ── Quick Stats ────────────────────────────────────────────────────────── -->
-<div class="row g-3 mb-4">
-
-  <div class="col-sm-4">
-    <div class="card border-0 shadow-sm rounded-4 text-center py-3">
-      <div class="fw-bold fs-3 text-success">
-        {{ student.completed_courses.count }}
-      </div>
-      <div class="small text-muted">Courses Completed</div>
-    </div>
-  </div>
-
-    <li>
-        <a href="{% url 'advisors' %}">
-            Chat with Advisor
-        </a>
-    </li>
-
-</ul>
-  <div class="col-sm-4">
-    <div class="card border-0 shadow-sm rounded-4 text-center py-3">
-      <div class="fw-bold fs-3">
-        {{ student.gpa|default:"—" }}
-      </div>
-      <div class="small text-muted">GPA</div>
-    </div>
-  </div>
-
-  <div class="col-sm-4">
-    <div class="card border-0 shadow-sm rounded-4 text-center py-3">
-      <div class="fw-bold fs-3">
-        {{ elapsed_count }}
-      </div>
-      <div class="small text-muted">Semesters Through</div>
-    </div>
-  </div>
-
-</div>
-
-<!-- ── Navigation ─────────────────────────────────────────────────────────── -->
-<div class="card border-0 shadow-sm rounded-4">
-  <div class="list-group list-group-flush rounded-4">
-
-    <a href="{% url 'create_appointment' %}"
-       class="list-group-item list-group-item-action d-flex align-items-center gap-3 p-3">
-      <span class="fs-4"></span>
-      <div>
-        <div class="fw-semibold">Take Appointment</div>
-        <div class="small text-muted">Book a session with your advisor</div>
-      </div>
+    <a href="{% url 'student_profile' %}"
+       class="btn btn-outline-primary">
+        My Profile
     </a>
 
-    <a href="{% url 'student_appointments' %}"
-       class="list-group-item list-group-item-action d-flex align-items-center gap-3 p-3">
-      <span class="fs-4"></span>
-      <div>
-        <div class="fw-semibold">My Appointments</div>
-        <div class="small text-muted">View your upcoming and past appointments</div>
-      </div>
-    </a>
+</div>
 
-    <a href="{% url 'student_completed_courses' %}"
-       class="list-group-item list-group-item-action d-flex align-items-center gap-3 p-3">
-      <span class="fs-4"></span>
-      <div>
-        <div class="fw-semibold">Completed Courses</div>
-        <div class="small text-muted">
-          View and update the courses you have finished
-          {% if student.completed_courses.count %}
-            <span class="badge bg-success ms-1">{{ student.completed_courses.count }}</span>
-          {% endif %}
+<!-- Stats -->
+<div class="row g-4 mb-4">
+
+    <div class="col-md-4">
+        <div class="card stat-card text-center">
+            <div class="card-body">
+
+                <div class="display-5 fw-bold text-success mb-1">
+                    {{ student.completed_courses.count }}
+                </div>
+
+                <div class="text-muted">
+                    Completed Courses
+                </div>
+
+            </div>
         </div>
-      </div>
-    </a>
+    </div>
 
-    <a href="{% url 'edit_student_profile' %}"
-       class="list-group-item list-group-item-action d-flex align-items-center gap-3 p-3">
-      <span class="fs-4"></span>
-      <div>
-        <div class="fw-semibold">Edit Registration Information</div>
-        <div class="small text-muted">Update your major, GPA, budget, and preferences</div>
-      </div>
-    </a>
+    <div class="col-md-4">
+        <div class="card stat-card text-center">
+            <div class="card-body">
 
-  </div>
+                <div class="display-5 fw-bold mb-1">
+                    {{ student.gpa|default:"—" }}
+                </div>
+
+                <div class="text-muted">
+                    GPA
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card stat-card text-center">
+            <div class="card-body">
+
+                <div class="display-5 fw-bold text-primary mb-1">
+                    {{ elapsed_count }}
+                </div>
+
+                <div class="text-muted">
+                    Semesters Completed
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Quick Actions -->
+<div class="card">
+
+    <div class="card-body">
+
+        <h5 class="fw-bold mb-4">
+            Quick Actions
+        </h5>
+
+        <div class="row g-3">
+
+            <div class="col-md-6">
+                <a href="{% url 'create_appointment' %}"
+                   class="text-decoration-none">
+
+                    <div class="p-4 rounded-4 border h-100">
+
+                        <h6 class="fw-bold mb-2">
+                            Book Appointment
+                        </h6>
+
+                        <p class="mb-0 text-muted small">
+                            Schedule a session with your advisor
+                        </p>
+
+                    </div>
+
+                </a>
+            </div>
+
+            <div class="col-md-6">
+                <a href="{% url 'student_completed_courses' %}"
+                   class="text-decoration-none">
+
+                    <div class="p-4 rounded-4 border h-100">
+
+                        <h6 class="fw-bold mb-2">
+                            Completed Courses
+                        </h6>
+
+                        <p class="mb-0 text-muted small">
+                            Manage your academic progress
+                        </p>
+
+                    </div>
+
+                </a>
+            </div>
+
+            <div class="col-md-6">
+                <a href="{% url 'student_appointments' %}"
+                   class="text-decoration-none">
+
+                    <div class="p-4 rounded-4 border h-100">
+
+                        <h6 class="fw-bold mb-2">
+                            My Appointments
+                        </h6>
+
+                        <p class="mb-0 text-muted small">
+                            Review upcoming meetings
+                        </p>
+
+                    </div>
+
+                </a>
+            </div>
+
+            <div class="col-md-6">
+                <a href="{% url 'advisors' %}"
+                   class="text-decoration-none">
+
+                    <div class="p-4 rounded-4 border h-100">
+
+                        <h6 class="fw-bold mb-2">
+                            Advisor Chat
+                        </h6>
+
+                        <p class="mb-0 text-muted small">
+                            Message your assigned advisors
+                        </p>
+
+                    </div>
+
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
 
 {% endblock %}
