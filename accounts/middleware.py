@@ -9,6 +9,10 @@ class BlockSuperuserMiddleware:
 
     def __call__(self, request):
 
+        # السماح للسوبر أدمن داخل لوحة الأدمن فقط
+        if request.path.startswith("/admin/"):
+            return self.get_response(request)
+
         if (
             hasattr(request, "user")
             and request.user.is_authenticated
