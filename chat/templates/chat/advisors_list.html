@@ -1,21 +1,56 @@
-<h1>Advisors in Your Major</h1>
+{% extends "base.html" %}
 
-<hr>
+{% block content %}
+
+<div class="mb-4">
+
+    <h2 class="fw-bold mb-1">
+        Advisors
+    </h2>
+
+    <p class="text-muted">
+        Advisors available for your major
+    </p>
+
+</div>
+
+<div class="row g-4">
 
 {% for advisor in advisors %}
 
-    <div style="margin-bottom: 15px;">
-        <p>
-            <strong>{{ advisor.username }}</strong>
-        </p>
+    <div class="col-md-6">
 
-        <a href="{% url 'chat' advisor.id %}">
-            Chat
-        </a>
+        <div class="card h-100">
+
+            <div class="card-body">
+
+                <h5 class="fw-bold mb-1">
+                    {{ advisor.get_full_name|default:advisor.username }}
+                </h5>
+
+                <p class="text-muted mb-4">
+                    Academic Advisor
+                </p>
+
+                <a href="{% url 'chat' advisor.id %}"
+                   class="btn btn-primary">
+                    Open Chat
+                </a>
+
+            </div>
+
+        </div>
+
     </div>
 
 {% empty %}
 
-    <p>No advisors found.</p>
+    <div class="empty-state">
+        No advisors found for your major.
+    </div>
 
 {% endfor %}
+
+</div>
+
+{% endblock %}

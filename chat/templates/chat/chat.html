@@ -1,36 +1,87 @@
-<h2>Chat with {{ other_user.username }}</h2>
+{% extends "base.html" %}
 
-<a href="{% url 'chat_list' %}">⬅ Back</a>
+{% block content %}
 
-<hr>
+<div class="chat-wrapper">
 
-<div id="chat-box"
-     style="height:400px; overflow-y:scroll; border:1px solid #ddd; padding:10px;">
+    <!-- Header -->
+    <div class="chat-header d-flex justify-content-between align-items-center">
+
+        <div>
+
+            <h5 class="mb-1 fw-bold">
+                {{ other_user.username }}
+            </h5>
+
+            <small class="opacity-75">
+                Academic Advisor
+            </small>
+
+        </div>
+
+        <a href="{% url 'chat_list' %}"
+           class="btn btn-light btn-sm">
+            Back
+        </a>
+
+    </div>
+
+    <!-- Messages -->
+    <div id="chat-box" class="chat-box">
+    </div>
+
+    <!-- Input -->
+    <div class="chat-input-area">
+
+        <form method="POST" class="d-flex gap-2">
+
+            {% csrf_token %}
+
+            <input
+                type="text"
+                name="content"
+                placeholder="Type your message..."
+                class="form-control"
+                autocomplete="off"
+            >
+
+            <button type="submit"
+                    class="btn btn-primary px-4">
+                Send
+            </button>
+
+        </form>
+
+    </div>
+
 </div>
 
-<form method="POST">
-    {% csrf_token %}
-    <input type="text" name="content" placeholder="Type message..." style="width:80%;">
-    <button type="submit">Send</button>
-</form>
-
 <script>
+
 const userId = "{{ other_user.id }}";
 
 function loadMessages() {
+
     fetch(`/chat/fetch/${userId}/`)
         .then(res => res.json())
         .then(data => {
+
             let box = document.getElementById("chat-box");
+
             box.innerHTML = "";
 
             data.messages.forEach(m => {
+
                 box.innerHTML += `
-                    <div style="text-align:${m.mine ? 'right' : 'left'}; margin:6px;">
-                        <span style="display:inline-block; padding:8px; border-radius:10px; background:#eee;">
+
+                    <div class="message-row ${m.mine ? 'mine' : 'other'}">
+
+                        <div class="message-bubble">
                             ${m.content}
-                        </span>
+                        </div>
+
                     </div>
+
                 `;
             });
 
@@ -39,5 +90,9 @@ function loadMessages() {
 }
 
 loadMessages();
+
 setInterval(loadMessages, 1000);
+
 </script>
+
+{% endblock %}

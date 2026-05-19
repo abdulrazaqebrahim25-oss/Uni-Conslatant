@@ -1,60 +1,277 @@
-body {
-    font-family: 'Inter', sans-serif;
-    background-color: #f5f7fb;
-    color: #1e293b;
+/* ─────────────────────────────────────────────
+   UNI PATHWAY DESIGN SYSTEM
+───────────────────────────────────────────── */
+
+:root {
+
+    /* Brand Colors */
+    --primary: #936345;
+    --primary-light: #b67b52;
+
+    --accent: #E19D66;
+
+    --cream: #F7D9AB;
+    --light: #F8F5EF;
+
+    --border: #D8D2C8;
+
+    --dark: #4D3C33;
+    --text: #3b3028;
+
+    --success: #4f8a5b;
+
+    --shadow:
+        0 4px 18px rgba(0,0,0,0.06);
+
+    --radius-lg: 24px;
+    --radius-md: 16px;
+    --radius-sm: 12px;
 }
 
-/* Cards */
-.card {
-    border: none;
+/* ───────────────────────────────────────────── */
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--light);
+    color: var(--text);
+}
+
+/* Typography */
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    color: var(--dark);
+}
+
+p {
+    color: #6d625b;
+}
+
+/* Navbar */
+
+.navbar {
+    background:
+        linear-gradient(
+            135deg,
+            #4D3C33,
+            #6c4e3b
+        ) !important;
+
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.navbar-brand {
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.nav-link {
+    color: rgba(255,255,255,0.85) !important;
     transition: 0.2s ease;
 }
 
-.card:hover {
-    transform: translateY(-2px);
+.nav-link:hover {
+    color: white !important;
+}
+
+/* Cards */
+
+.card {
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    background: white;
+}
+
+.card-body {
+    padding: 1.6rem;
+}
+
+/* Dashboard stat cards */
+
+.stat-card {
+    border-radius: 22px;
+    transition: 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+}
+
+/* Buttons */
+
+.btn {
+    border-radius: 14px;
+    padding: 0.7rem 1.2rem;
+    font-weight: 600;
+    border: none;
+}
+
+.btn-primary {
+    background: var(--primary);
+}
+
+.btn-primary:hover {
+    background: #7d5237;
+}
+
+.btn-outline-primary {
+    border: 1px solid var(--primary);
+    color: var(--primary);
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-success {
+    background: var(--success);
 }
 
 /* Tables */
+
 .table {
     vertical-align: middle;
 }
 
-/* Navbar */
-.navbar-brand {
-    letter-spacing: -0.5px;
+.table thead {
+    background: #f5ede5;
 }
 
-/* Buttons */
-.btn {
-    border-radius: 10px;
+.table thead th {
+    border: none;
+    color: var(--dark);
+    font-weight: 600;
+}
+
+.table tbody tr {
+    transition: 0.15s ease;
+}
+
+.table tbody tr:hover {
+    background: #faf7f2;
+}
+
+/* Badges */
+
+.badge {
+    border-radius: 999px;
+    padding: 0.55rem 0.85rem;
     font-weight: 500;
 }
 
-/* Form Controls */
+.bg-primary {
+    background: var(--primary) !important;
+}
+
+.bg-success {
+    background: var(--success) !important;
+}
+
+.bg-secondary {
+    background: #8b817a !important;
+}
+
+/* Forms */
+
 .form-control,
 .form-select {
-    border-radius: 12px;
-    padding: 0.75rem 1rem;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    padding: 0.85rem 1rem;
 }
 
-/* Page Titles */
-.page-title {
-    font-weight: 700;
-    margin-bottom: 0.25rem;
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary);
+    box-shadow:
+        0 0 0 0.15rem rgba(147,99,69,0.15);
 }
 
-.page-subtitle {
-    color: #64748b;
-    margin-bottom: 2rem;
+/* List Groups */
+
+.list-group-item {
+    border: none;
+    border-bottom: 1px solid #f0ebe5;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
 }
 
-/* Dashboard cards */
-.stat-card {
-    border-radius: 20px;
+.list-group-item:hover {
+    background: #faf7f4;
 }
 
-/* Scroll areas */
-.custom-scroll {
-    max-height: 400px;
+/* Chat */
+
+.chat-wrapper {
+    background: white;
+    border-radius: 28px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.chat-header {
+    padding: 1.2rem 1.5rem;
+    background:
+        linear-gradient(
+            135deg,
+            #936345,
+            #b67b52
+        );
+
+    color: white;
+}
+
+.chat-box {
+    height: 500px;
     overflow-y: auto;
+    padding: 1.5rem;
+    background: #fcfaf7;
+}
+
+.message-row {
+    margin-bottom: 1rem;
+    display: flex;
+}
+
+.message-row.mine {
+    justify-content: flex-end;
+}
+
+.message-bubble {
+    max-width: 75%;
+    padding: 0.9rem 1rem;
+    border-radius: 18px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.message-row.mine .message-bubble {
+    background: var(--primary);
+    color: white;
+    border-bottom-right-radius: 6px;
+}
+
+.message-row.other .message-bubble {
+    background: white;
+    border: 1px solid #ece4dc;
+    color: var(--text);
+    border-bottom-left-radius: 6px;
+}
+
+.chat-input-area {
+    padding: 1rem;
+    border-top: 1px solid #eee;
+    background: white;
+}
+
+/* Empty states */
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #8c8179;
 }
