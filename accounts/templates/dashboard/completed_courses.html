@@ -5,22 +5,38 @@
 <!-- ── Header ───────────────────────────────────────────────────────────── -->
 <div class="d-flex justify-content-between align-items-center mb-4">
   <div>
-    <a href="{% url 'dashboard' %}" class="text-muted small d-block mb-1">← Back to Dashboard</a>
+    <a href="{% url 'dashboard' %}" class="text-muted small d-block mb-1">
+      ← Back to Dashboard
+    </a>
+
     <h2 class="fw-bold mb-0">Completed Courses</h2>
-    <p class="text-muted mb-0">{{ student.major|default:"No major set" }}</p>
+
+    <p class="text-muted mb-0">
+      {{ student.major|default:"No major set" }}
+    </p>
   </div>
+
   <div class="text-end">
-    <div class="fw-bold fs-3 text-success">{{ completed_ids|length }}</div>
-    <div class="small text-muted">of {{ course_data|length }} courses done</div>
+    <div class="fw-bold fs-3 text-success" id="completedCounter">
+      {{ completed_ids|length }}
+    </div>
+
+    <div class="small text-muted">
+      of {{ course_data|length }} courses done
+    </div>
   </div>
 </div>
 
 <!-- ── Semester history ──────────────────────────────────────────────────── -->
 <div class="card border-0 shadow-sm rounded-4 mb-4">
   <div class="card-body p-4">
-    <h5 class="fw-semibold text-primary mb-3">Semesters Completed</h5>
+
+    <h5 class="fw-semibold text-primary mb-3">
+      Semesters Completed
+    </h5>
 
     {% if elapsed_semesters %}
+
       <div class="d-flex flex-wrap gap-2">
         {% for s in elapsed_semesters %}
           <span class="badge rounded-pill bg-success py-2 px-3">
@@ -28,19 +44,24 @@
           </span>
         {% endfor %}
       </div>
+
       <p class="small text-muted mt-2 mb-0">
-        {{ elapsed_count }} semester{{ elapsed_count|pluralize }} since
-        {{ student.get_entry_semester_display }} {{ student.entry_year }}.
+        {{ elapsed_count }} semester{{ elapsed_count|pluralize }}
+        since {{ student.get_entry_semester_display }}
+        {{ student.entry_year }}.
       </p>
+
     {% else %}
+
       <p class="text-muted mb-0">
         Your first semester hasn't ended yet.
       </p>
+
     {% endif %}
   </div>
 </div>
 
-<!-- ── Course list + update form ─────────────────────────────────────────── -->
+<!-- ── Course List ───────────────────────────────────────────────────────── -->
 {% if course_data %}
 
 <form method="POST">
@@ -49,30 +70,57 @@
   <div class="card border-0 shadow-sm rounded-4 mb-3">
     <div class="card-body p-4">
 
-      <div class="d-flex justify-content-between align-items-center mb-3">
+      <!-- Top Bar -->
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+
         <h5 class="fw-semibold text-primary mb-0">
           Your Course Plan
         </h5>
-        <!-- Legend -->
+
+        <!-- FILTER BUTTONS -->
         <div class="d-flex gap-2 flex-wrap">
-          <span class="badge bg-success">✔ Completed</span>
-          <span class="badge bg-primary">Available</span>
-          <span class="badge bg-secondary">Locked</span>
+
+          <button
+            type="button"
+            class="btn btn-sm btn-success filter-btn"
+            data-filter="completed"
+          >
+            ✔ Completed
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-sm btn-primary filter-btn"
+            data-filter="available"
+          >
+            Available
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-sm btn-secondary filter-btn"
+            data-filter="locked"
+          >
+            Locked
+          </button>
+
         </div>
       </div>
 
-      <p class="small text-muted mb-3">
+      <p class="small text-muted mb-4">
         Tick every course you have already passed, then click
-        <strong>Save Changes</strong>. Locked courses show which
-        prerequisites must be done first.
+        <strong>Save Changes</strong>.
+        Locked courses cannot be selected until all prerequisites are completed.
       </p>
 
-      <!-- Mandatory group -->
+      <!-- ── Mandatory Courses ─────────────────────────────────────────── -->
       <h6 class="text-uppercase small fw-semibold text-danger mb-2 mt-2">
         Mandatory Courses
       </h6>
+
       <div class="table-responsive mb-4">
         <table class="table table-hover align-middle mb-0">
+
           <thead class="table-light">
             <tr>
               <th style="width:40px;"></th>
@@ -83,58 +131,127 @@
               <th>Status</th>
             </tr>
           </thead>
+
           <tbody>
+
             {% for item in course_data %}
             {% if item.type == "Mandatory" %}
-            <tr {% if item.is_completed %}class="table-success"{% endif %}>
+
+            <tr
+              class="course-row {% if item.is_completed %}table-success{% endif %}"
+
+              data-course-id="{{ item.course.id }}"
+
+              data-course-code="{{ item.course.code }}"
+
+              data-prereq-codes="
+                {% for prereq in item.prerequisites %}
+                  {{ prereq.code }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+              "
+
+              data-prereqs="
+                {% for prereq in item.prerequisites %}
+                  {{ prereq.id }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+              "
+            >
+
+              <!-- Checkbox -->
               <td>
                 <input
-                  class="form-check-input"
+                  class="form-check-input course-checkbox"
                   type="checkbox"
                   name="completed_courses"
                   value="{{ item.course.id }}"
                   id="c{{ item.course.id }}"
-                  {% if item.is_completed %}checked{% endif %}
+
+                  {% if item.is_completed %}
+                    checked
+                  {% endif %}
+
+                  {% if not item.is_completed and not item.can_take %}
+                    disabled
+                  {% endif %}
                 >
               </td>
+
+              <!-- Course Name -->
               <td>
-                <label class="form-check-label mb-0" for="c{{ item.course.id }}">
+                <label
+                  class="form-check-label mb-0"
+                  for="c{{ item.course.id }}"
+                >
                   {{ item.course.name }}
                 </label>
+
+                <!-- Missing prereq message -->
+                <div class="missing-prereqs text-danger small mt-1"></div>
               </td>
-              <td class="fw-semibold text-nowrap">{{ item.course.code }}</td>
-              <td class="text-center">{{ item.course.credit }}</td>
+
+              <!-- Code -->
+              <td class="fw-semibold text-nowrap">
+                {{ item.course.code }}
+              </td>
+
+              <!-- Credits -->
+              <td class="text-center">
+                {{ item.course.credit }}
+              </td>
+
+              <!-- Prerequisites -->
               <td>
                 {% if item.prerequisites %}
+
                   {% for prereq in item.prerequisites %}
-                    <span class="badge bg-warning text-dark me-1">{{ prereq.code }}</span>
+                    <span class="badge bg-warning text-dark me-1">
+                      {{ prereq.code }}
+                    </span>
                   {% endfor %}
+
                 {% else %}
                   <span class="text-muted">—</span>
                 {% endif %}
               </td>
-              <td>
+
+              <!-- Status -->
+              <td class="status-cell">
+
                 {% if item.is_completed %}
-                  <span class="badge bg-success">✔ Completed</span>
+                  <span class="badge bg-success">
+                    ✔ Completed
+                  </span>
+
                 {% elif item.can_take %}
-                  <span class="badge bg-primary">Available</span>
+                  <span class="badge bg-primary">
+                    Available
+                  </span>
+
                 {% else %}
-                  <span class="badge bg-secondary">Locked 🔒</span>
+                  <span class="badge bg-secondary">
+                    Locked 🔒
+                  </span>
+
                 {% endif %}
+
               </td>
             </tr>
+
             {% endif %}
             {% endfor %}
+
           </tbody>
         </table>
       </div>
 
-      <!-- Elective group -->
+      <!-- ── Elective Courses ─────────────────────────────────────────── -->
       <h6 class="text-uppercase small fw-semibold text-secondary mb-2">
         Elective Courses
       </h6>
+
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
+
           <thead class="table-light">
             <tr>
               <th style="width:40px;"></th>
@@ -145,48 +262,115 @@
               <th>Status</th>
             </tr>
           </thead>
+
           <tbody>
+
             {% for item in course_data %}
             {% if item.type == "Elective" %}
-            <tr {% if item.is_completed %}class="table-success"{% endif %}>
+
+            <tr
+              class="course-row {% if item.is_completed %}table-success{% endif %}"
+
+              data-course-id="{{ item.course.id }}"
+
+              data-course-code="{{ item.course.code }}"
+
+              data-prereq-codes="
+                {% for prereq in item.prerequisites %}
+                  {{ prereq.code }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+              "
+
+              data-prereqs="
+                {% for prereq in item.prerequisites %}
+                  {{ prereq.id }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+              "
+            >
+
+              <!-- Checkbox -->
               <td>
                 <input
-                  class="form-check-input"
+                  class="form-check-input course-checkbox"
                   type="checkbox"
                   name="completed_courses"
                   value="{{ item.course.id }}"
                   id="c{{ item.course.id }}"
-                  {% if item.is_completed %}checked{% endif %}
+
+                  {% if item.is_completed %}
+                    checked
+                  {% endif %}
+
+                  {% if not item.is_completed and not item.can_take %}
+                    disabled
+                  {% endif %}
                 >
               </td>
+
+              <!-- Course Name -->
               <td>
-                <label class="form-check-label mb-0" for="c{{ item.course.id }}">
+                <label
+                  class="form-check-label mb-0"
+                  for="c{{ item.course.id }}"
+                >
                   {{ item.course.name }}
                 </label>
+
+                <!-- Missing prereq message -->
+                <div class="missing-prereqs text-danger small mt-1"></div>
               </td>
-              <td class="fw-semibold text-nowrap">{{ item.course.code }}</td>
-              <td class="text-center">{{ item.course.credit }}</td>
+
+              <!-- Code -->
+              <td class="fw-semibold text-nowrap">
+                {{ item.course.code }}
+              </td>
+
+              <!-- Credits -->
+              <td class="text-center">
+                {{ item.course.credit }}
+              </td>
+
+              <!-- Prerequisites -->
               <td>
                 {% if item.prerequisites %}
+
                   {% for prereq in item.prerequisites %}
-                    <span class="badge bg-warning text-dark me-1">{{ prereq.code }}</span>
+                    <span class="badge bg-warning text-dark me-1">
+                      {{ prereq.code }}
+                    </span>
                   {% endfor %}
+
                 {% else %}
                   <span class="text-muted">—</span>
                 {% endif %}
               </td>
-              <td>
+
+              <!-- Status -->
+              <td class="status-cell">
+
                 {% if item.is_completed %}
-                  <span class="badge bg-success">✔ Completed</span>
+                  <span class="badge bg-success">
+                    ✔ Completed
+                  </span>
+
                 {% elif item.can_take %}
-                  <span class="badge bg-primary">Available</span>
+                  <span class="badge bg-primary">
+                    Available
+                  </span>
+
                 {% else %}
-                  <span class="badge bg-secondary">Locked 🔒</span>
+                  <span class="badge bg-secondary">
+                    Locked 🔒
+                  </span>
+
                 {% endif %}
+
               </td>
             </tr>
+
             {% endif %}
             {% endfor %}
+
           </tbody>
         </table>
       </div>
@@ -194,22 +378,221 @@
     </div>
   </div>
 
-  <!-- Sticky save bar -->
+  <!-- Save Bar -->
   <div class="d-flex gap-2 justify-content-end mb-5">
-    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary px-4">
+
+    <a href="{% url 'dashboard' %}"
+       class="btn btn-outline-secondary px-4">
       Cancel
     </a>
-    <button type="submit" class="btn btn-success px-5 fw-semibold">
+
+    <button type="submit"
+            class="btn btn-success px-5 fw-semibold">
       Save Changes
     </button>
-  </div>
 
+  </div>
 </form>
 
 {% else %}
-  <div class="alert alert-secondary">
-    No courses found for your major. Make sure your major is set in your profile.
-  </div>
+
+<div class="alert alert-secondary">
+  No courses found for your major.
+</div>
+
 {% endif %}
+
+<!-- ── JAVASCRIPT ───────────────────────────────────────────────────────── -->
+<script>
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    // =====================================================
+    // FILTER BUTTONS
+    // =====================================================
+
+    let activeFilter = null;
+
+    document.querySelectorAll(".filter-btn").forEach(btn => {
+
+        btn.addEventListener("click", () => {
+
+            const filter = btn.dataset.filter;
+
+            // Toggle OFF
+            if (activeFilter === filter) {
+
+                activeFilter = null;
+
+                btn.classList.remove("active");
+
+                document.querySelectorAll(".course-row").forEach(row => {
+                    row.style.display = "";
+                });
+
+                return;
+            }
+
+            // Remove active from all buttons
+            document.querySelectorAll(".filter-btn").forEach(b => {
+                b.classList.remove("active");
+            });
+
+            btn.classList.add("active");
+
+            activeFilter = filter;
+
+            document.querySelectorAll(".course-row").forEach(row => {
+
+                if (row.dataset.status === filter) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+
+            });
+
+        });
+
+    });
+
+
+    // =====================================================
+    // LIVE PREREQUISITE ENGINE
+    // =====================================================
+
+    function updateCourseStates() {
+
+        // Get completed courses
+        const completed = [];
+
+        document.querySelectorAll(".course-checkbox:checked")
+            .forEach(cb => {
+                completed.push(cb.value);
+            });
+
+        // Update every row
+        document.querySelectorAll(".course-row").forEach(row => {
+
+            const checkbox = row.querySelector(".course-checkbox");
+            const statusCell = row.querySelector(".status-cell");
+            const missingBox = row.querySelector(".missing-prereqs");
+
+            const prereqIds = row.dataset.prereqs
+                .split(",")
+                .map(x => x.trim())
+                .filter(x => x !== "");
+
+            const prereqCodes = row.dataset.prereqCodes
+                .split(",")
+                .map(x => x.trim())
+                .filter(x => x !== "");
+
+            // ============================================
+            // COMPLETED
+            // ============================================
+
+            if (checkbox.checked) {
+
+                row.dataset.status = "completed";
+
+                checkbox.disabled = false;
+
+                row.classList.add("table-success");
+
+                statusCell.innerHTML = `
+                    <span class="badge bg-success">
+                        ✔ Completed
+                    </span>
+                `;
+
+                missingBox.innerHTML = "";
+
+                return;
+            }
+
+            // ============================================
+            // AVAILABLE
+            // ============================================
+
+            const missing = [];
+
+            prereqIds.forEach((id, index) => {
+
+                if (!completed.includes(id)) {
+                    missing.push(prereqCodes[index]);
+                }
+
+            });
+
+            if (missing.length === 0) {
+
+                checkbox.disabled = false;
+
+                row.dataset.status = "available";
+
+                row.classList.remove("table-success");
+
+                statusCell.innerHTML = `
+                    <span class="badge bg-primary">
+                        Available
+                    </span>
+                `;
+
+                missingBox.innerHTML = "";
+
+            }
+
+            // ============================================
+            // LOCKED
+            // ============================================
+
+            else {
+
+                checkbox.checked = false;
+
+                checkbox.disabled = true;
+
+                row.dataset.status = "locked";
+
+                row.classList.remove("table-success");
+
+                statusCell.innerHTML = `
+                    <span class="badge bg-secondary">
+                        Locked 🔒
+                    </span>
+                `;
+
+                missingBox.innerHTML = `
+                    Missing prerequisite(s):
+                    ${missing.join(", ")}
+                `;
+            }
+
+        });
+
+        // Update counter
+        document.getElementById("completedCounter").innerText =
+            document.querySelectorAll(".course-checkbox:checked").length;
+    }
+
+
+    // Listen for changes
+    document.querySelectorAll(".course-checkbox").forEach(box => {
+
+        box.addEventListener("change", () => {
+
+            updateCourseStates();
+
+        });
+
+    });
+
+
+    // Initial page load
+    updateCourseStates();
+
+});
+</script>
 
 {% endblock %}

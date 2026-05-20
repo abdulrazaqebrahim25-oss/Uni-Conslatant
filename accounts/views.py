@@ -171,7 +171,39 @@ def student_completed_courses_view(request):
         valid_ids = {str(mc.course.id) for mc in major_courses}
         safe_ids  = [int(i) for i in selected_ids if i in valid_ids]
 
-        student.completed_courses.set(safe_ids)
+        valid_completed = set()
+
+        major_course_lookup = {
+            mc.course.id: mc.course
+            for mc in major_courses
+        }
+
+        remaining = set(safe_ids)
+
+        changed = True
+
+        while changed:
+            changed = False
+            
+        for course_id in list(remaining):
+            course = major_course_lookup.get(course_id)
+
+            if not course:
+                continue
+
+            prereq_ids = set(
+                course.prerequisites.values_list("id", flat=True)
+            )
+
+            #prerequisites must already be valid
+            if prereq_ids.issubset(valid_completed):
+                valid_completed.add(course_id)
+                remaining.remove(course_id)
+                changed = True
+
+        student.completed_courses_set(valid_completed)
+
+
         return redirect("student_completed_courses")
 
     # ── Build per-course status for the template ──────────────────────────────
