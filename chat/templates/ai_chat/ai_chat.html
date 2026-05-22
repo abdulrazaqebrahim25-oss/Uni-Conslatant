@@ -1,405 +1,290 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Study Plan Chat - {{ other_user.get_full_name|default:other_user.username }}</title>
-    <style>
-        /* Main container styles */
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-        }
-        
-        .chat-container {
-            max-width: 1000px;
-            margin: auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        
-        /* Header styles */
-        .chat-header {
-            background: #2563eb;
-            color: white;
-            padding: 16px;
-            font-size: 20px;
-            font-weight: bold;
-        }
-        
-        /* Chat messages area */
-        #chat-box {
-            height: 400px;
-            overflow-y: auto;
-            padding: 15px;
-            background: #fafafa;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        /* Message bubble styles */
-        .message-row {
-            margin: 10px 0;
-            display: flex;
-        }
-        
-        .message-row.user {
-            justify-content: flex-end;
-        }
-        
-        .message-row.ai {
-            justify-content: flex-start;
-        }
-        
-        .message-bubble {
-            max-width: 70%;
-            padding: 10px 14px;
-            border-radius: 14px;
-            line-height: 1.5;
-            word-wrap: break-word;
-            white-space: pre-wrap;
-        }
-        
-        .message-row.user .message-bubble {
-            background: #e5e7eb;
-        }
-        
-        .message-row.ai .message-bubble {
-            background: #dbeafe;
-        }
-        
-        /* Input form styles */
-        .chat-form {
-            display: flex;
-            gap: 10px;
-            padding: 15px;
-            border-top: 1px solid #ddd;
-            background: white;
-        }
-        
-        .chat-form input {
-            flex: 1;
-            padding: 12px;
-            border-radius: 10px;
-            border: 1px solid #ccc;
-            font-size: 15px;
-        }
-        
-        .chat-form button {
-            padding: 12px 18px;
-            border: none;
-            background: #2563eb;
-            color: white;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 15px;
-        }
-        
-        .chat-form button:hover {
-            background: #1d4ed8;
-        }
-        
-        /* Typing indicator */
-        .typing {
-            opacity: 0.7;
-            font-style: italic;
-        }
-        
-        /* Plan display area */
-        #plan-container {
-            padding: 20px;
-            background: #f9fafb;
-            max-height: 400px;
-            overflow-y: auto;
-            border-top: 1px solid #ddd;
-        }
-        
-        /* Semester card styles */
-        .semester-card {
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-        }
-        
-        .semester-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 12px;
-            color: #1e3a8a;
-        }
-        
-        .course-item {
-            padding: 10px;
-            margin: 6px 0;
-            background: #eff6ff;
-            border-radius: 8px;
-            border: 1px solid #bfdbfe;
-        }
-        
-        /* Validation error styles */
-        .validation-box {
-            background: #fee2e2;
-            border: 1px solid #ef4444;
-            color: #991b1b;
-            padding: 14px;
-            border-radius: 10px;
-            margin-top: 20px;
-        }
-        
-        .validation-title {
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        
-        /* Progress stats bar */
-        .stats-bar {
-            padding: 10px 20px;
-            background: #f0fdf4;
-            border-bottom: 1px solid #dcfce7;
-            display: flex;
-            gap: 20px;
-            font-size: 14px;
-        }
-        
-        .stat {
-            color: #166534;
-        }
-    </style>
-</head>
-<body>
+{% extends "base.html" %}
 
-<div class="chat-container">
-    <div class="chat-header">
-        🤖 AI Study Planner - {{ other_user.get_full_name|default:other_user.username }}
+{% block content %}
+
+<div class="container py-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                AI Study Planner
+            </h2>
+
+            <p class="text-muted mb-0">
+                Smart academic assistant for study planning
+            </p>
+        </div>
+
+        <a href="{% url 'chat_list' %}" class="btn btn-outline-secondary">
+            ← Back
+        </a>
+
     </div>
-    
-    <!-- Display progress stats -->
-    <div class="stats-bar">
-        <span class="stat">📊 Progress: {{ welcome_message.stats.progress }}%</span>
-        <span class="stat">✅ Completed: {{ welcome_message.stats.completed }}/{{ welcome_message.stats.total }}</span>
-        <span class="stat">🎓 Remaining: {{ welcome_message.stats.remaining_credits }} credits</span>
+
+    <!-- Stats -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+
+                    <div class="fw-bold text-success fs-3">
+                        {{ welcome_message.stats.progress }}%
+                    </div>
+
+                    <div class="text-muted">
+                        Progress
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+
+                    <div class="fw-bold fs-3">
+                        {{ welcome_message.stats.completed }}/{{ welcome_message.stats.total }}
+                    </div>
+
+                    <div class="text-muted">
+                        Completed Courses
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+
+                    <div class="fw-bold text-primary fs-3">
+                        {{ welcome_message.stats.remaining_credits }}
+                    </div>
+
+                    <div class="text-muted">
+                        Remaining Credits
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
     </div>
-    
-    <div id="chat-box"></div>
-    <div id="plan-container"></div>
-    
-    <form id="chat-form" class="chat-form">
-        {% csrf_token %}
-        <input type="text" id="user-input" placeholder="Type your message..." autocomplete="off">
-        <button type="submit">Send</button>
-    </form>
+
+    <!-- Chat Box -->
+    <div class="card mb-3">
+
+        <div class="card-header fw-bold">
+            Chat
+        </div>
+
+        <div id="chat-box" class="card-body" style="height: 400px; overflow-y: auto;">
+        </div>
+
+    </div>
+
+    <!-- Plan Box -->
+    <div class="card mb-3">
+
+        <div class="card-header fw-bold">
+            Study Plan
+        </div>
+
+        <div id="plan-container" class="card-body">
+        </div>
+
+    </div>
+
+    <!-- Input -->
+    <div class="card">
+
+        <div class="card-body">
+
+            <form id="chat-form" class="d-flex gap-2">
+
+                {% csrf_token %}
+
+                <input type="text"
+                       id="user-input"
+                       class="form-control"
+                       placeholder="Type your message...">
+
+                <button type="submit" class="btn btn-primary">
+                    Send
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
 </div>
 
+<!-- SAFE JSON -->
+{{ welcome_message|json_script:"welcome-data" }}
+
 <script>
-    // Get user ID from Django template
-    const userId = "{{ other_user.id }}";
-    const chatBox = document.getElementById("chat-box");
-    const form = document.getElementById("chat-form");
-    const input = document.getElementById("user-input");
-    
-    // Store conversation history
-    let conversation = [];
-    let isLoading = false;
-    
-    // Welcome message passed from Django view
-    const welcomeMessage = {{ welcome_message|safe }};
-    
-    // Helper: Escape HTML special characters
-    function escapeHtml(text) {
-        const div = document.createElement("div");
-        div.innerText = text;
-        return div.innerHTML;
-    }
-    
-    // Helper: Add message to chat box
-    function appendMessage(content, sender) {
-        const row = document.createElement("div");
-        row.classList.add("message-row");
-        row.classList.add(sender);
-        
-        const bubble = document.createElement("div");
-        bubble.classList.add("message-bubble");
-        
-        // Convert newlines to <br> tags
-        const formattedContent = content.replace(/\n/g, '<br>');
-        bubble.innerHTML = escapeHtml(formattedContent);
-        
-        row.appendChild(bubble);
-        chatBox.appendChild(row);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-    
-    // Helper: Render semester plan
-    function renderPlan(plan) {
-        const container = document.getElementById("plan-container");
-        container.innerHTML = "";
-        
-        // Display semesters
-        if (plan.semesters && plan.semesters.length > 0) {
-            plan.semesters.forEach(semester => {
-                const card = document.createElement("div");
-                card.classList.add("semester-card");
-                
-                const title = document.createElement("div");
-                title.classList.add("semester-title");
-                title.innerText = `Semester ${semester.semester}`;
-                card.appendChild(title);
-                
-                semester.courses.forEach(course => {
-                    const item = document.createElement("div");
-                    item.classList.add("course-item");
-                    item.innerText = course;
-                    card.appendChild(item);
-                });
-                
-                container.appendChild(card);
-            });
-        }
-        
-        // Display validation errors if any
-        if (plan.validation_errors && plan.validation_errors.length > 0) {
-            const errorBox = document.createElement("div");
-            errorBox.classList.add("validation-box");
-            
-            const title = document.createElement("div");
-            title.classList.add("validation-title");
-            title.innerText = "⚠️ Validation Issues";
-            errorBox.appendChild(title);
-            
-            plan.validation_errors.forEach(error => {
-                const row = document.createElement("div");
-                row.innerText = `• ${error}`;
-                errorBox.appendChild(row);
-            });
-            
-            container.appendChild(errorBox);
-        }
-    }
-    
-    // Helper: Show typing indicator
-    function addTypingIndicator() {
-        const row = document.createElement("div");
-        row.classList.add("message-row", "ai");
-        row.id = "typing-indicator";
-        
-        const bubble = document.createElement("div");
-        bubble.classList.add("message-bubble", "typing");
-        bubble.innerText = "AI is thinking...";
-        
-        row.appendChild(bubble);
-        chatBox.appendChild(row);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-    
-    // Helper: Remove typing indicator
-    function removeTypingIndicator() {
-        const typing = document.getElementById("typing-indicator");
-        if (typing) {
-            typing.remove();
-        }
-    }
-    
-    // Display welcome message when page loads
-    function initializeChat() {
-        // Add welcome message
-        appendMessage(welcomeMessage.text, "ai");
-        
-        // Add welcome message to conversation history
-        conversation.push({
-            role: "assistant",
-            content: welcomeMessage.text
+const userId = "{{ other_user.id }}";
+const chatBox = document.getElementById("chat-box");
+const input = document.getElementById("user-input");
+
+let conversation = [];
+let isLoading = false;
+
+const welcomeMessage = JSON.parse(
+    document.getElementById("welcome-data").textContent
+);
+
+// --------------------
+// Add Message
+// --------------------
+function appendMessage(content, sender) {
+    const wrapper = document.createElement("div");
+    wrapper.classList.add("mb-2", "d-flex");
+
+    wrapper.classList.add(sender === "user"
+        ? "justify-content-end"
+        : "justify-content-start"
+    );
+
+    const bubble = document.createElement("div");
+    bubble.classList.add("p-2", "rounded");
+
+    bubble.style.maxWidth = "70%";
+
+    bubble.classList.add(sender === "user"
+        ? "bg-light"
+        : "bg-primary", "text-white"
+    );
+
+    bubble.innerHTML = content;
+
+    wrapper.appendChild(bubble);
+    chatBox.appendChild(wrapper);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// --------------------
+// Render Plan
+// --------------------
+function renderPlan(plan) {
+    const container = document.getElementById("plan-container");
+    container.innerHTML = "";
+
+    if (!plan.semesters) return;
+
+    plan.semesters.forEach(sem => {
+
+        const card = document.createElement("div");
+        card.className = "card mb-2";
+
+        const body = document.createElement("div");
+        body.className = "card-body";
+
+        const title = document.createElement("div");
+        title.className = "fw-bold mb-2";
+        title.innerText = "Semester " + sem.semester;
+
+        body.appendChild(title);
+
+        sem.courses.forEach(c => {
+            const item = document.createElement("div");
+            item.className = "text-muted";
+            item.innerText = "• " + c;
+            body.appendChild(item);
         });
-        
-        // Render initial plan if exists
-        if (welcomeMessage.plan && welcomeMessage.plan.semesters.length > 0) {
-            renderPlan(welcomeMessage.plan);
-        }
+
+        card.appendChild(body);
+        container.appendChild(card);
+    });
+
+    if (plan.validation_errors?.length) {
+
+        const alert = document.createElement("div");
+        alert.className = "alert alert-danger mt-3";
+
+        alert.innerHTML =
+            "<b>Validation Issues</b><br>" +
+            plan.validation_errors.join("<br>");
+
+        container.appendChild(alert);
     }
-    
-    // Handle Enter key press
-    input.addEventListener("keydown", function(e) {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            form.dispatchEvent(new Event("submit"));
-        }
+}
+
+// --------------------
+// Init
+// --------------------
+function init() {
+    appendMessage(welcomeMessage.text, "ai");
+
+    conversation.push({
+        role: "assistant",
+        content: welcomeMessage.text
     });
-    
-    // Handle form submission
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        
-        // Prevent duplicate requests
-        if (isLoading) return;
-        
-        const message = input.value.trim();
-        if (!message) return;
-        
-        isLoading = true;
-        
-        // Display user message immediately
-        appendMessage(message, "user");
-        
-        // Clear input
-        input.value = "";
-        
-        // Show typing indicator
-        addTypingIndicator();
-        
-        try {
-            const response = await fetch(`/chat/ai/api/${userId}/`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
-                },
-                body: JSON.stringify({
-                    message: message,
-                    conversation: conversation
-                })
-            });
-            
-            const data = await response.json();
-            removeTypingIndicator();
-            
-            // Handle errors
-            if (data.error) {
-                appendMessage("Error: " + data.error, "ai");
-                console.error(data);
-                isLoading = false;
-                return;
-            }
-            
-            // Store user message in conversation history
-            conversation.push(data.user_message);
-            
-            // Display AI response
-            appendMessage(data.ai_message.content, "ai");
-            
-            // Store AI response in conversation history
-            conversation.push(data.ai_message);
-            
-            // Render the study plan
-            if (data.plan) {
-                renderPlan(data.plan);
-            }
-            
-        } catch (error) {
-            removeTypingIndicator();
-            appendMessage("Something went wrong. Please try again.", "ai");
-            console.error(error);
-        } finally {
-            isLoading = false;
+
+    if (welcomeMessage.plan?.semesters?.length) {
+        renderPlan(welcomeMessage.plan);
+    }
+}
+
+// --------------------
+// Send
+// --------------------
+document.getElementById("chat-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    if (isLoading) return;
+
+    const message = input.value.trim();
+    if (!message) return;
+
+    isLoading = true;
+
+    appendMessage(message, "user");
+    input.value = "";
+
+    try {
+        const res = await fetch(`/chat/ai/api/${userId}/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
+            },
+            body: JSON.stringify({
+                message,
+                conversation
+            })
+        });
+
+        const data = await res.json();
+
+        if (data.error) {
+            appendMessage(data.error, "ai");
+            return;
         }
-    });
-    
-    // Start the chat when page loads
-    initializeChat();
+
+        conversation.push(data.user_message);
+        appendMessage(data.ai_message.content, "ai");
+        conversation.push(data.ai_message);
+
+        if (data.plan) {
+            renderPlan(data.plan);
+        }
+
+    } catch (err) {
+        appendMessage("Error occurred", "ai");
+    } finally {
+        isLoading = false;
+    }
+});
+
+init();
 </script>
 
-</body>
-</html>
+{% endblock %}
