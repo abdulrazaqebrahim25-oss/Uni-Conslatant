@@ -4,46 +4,123 @@
 
 <div class="container py-4">
 
-    <h1 class="mb-4">My Appointments</h1>
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h1 class="fw-bold mb-1">
+                My Appointments
+            </h1>
+
+            <p class="text-muted mb-0">
+                View, edit, and manage your appointments
+            </p>
+        </div>
+
+        <a href="{% url 'create_appointment' %}"
+           class="btn btn-success">
+
+            + New Appointment
+
+        </a>
+
+    </div>
 
     {% if appointments %}
 
-        <div class="list-group">
+        <div class="row">
 
             {% for appointment in appointments %}
 
-                <div class="list-group-item mb-3 rounded shadow-sm">
+                <div class="col-lg-6 mb-4">
 
-                    <h5>
-                        Advisor:
-                        {{ appointment.advisor.user.get_full_name }}
-                    </h5>
+                    <div class="card shadow-sm border-0 h-100">
 
-                    <p class="mb-1">
-                        <strong>Start:</strong>
-                        {{ appointment.start_time|date:"Y-m-d H:i" }}
-                    </p>
+                        <div class="card-body">
 
-                    <p class="mb-1">
-                        <strong>End:</strong>
-                        {{ appointment.end_time|date:"Y-m-d H:i" }}
-                    </p>
+                            <!-- Advisor -->
+                            <h5 class="fw-bold mb-3">
 
-                    <p class="mb-3">
-                        <strong>Status:</strong>
-                        {{ appointment.status }}
-                    </p>
+                                {{ appointment.advisor.user.get_full_name }}
 
-                    {% if appointment.status != "done" and appointment.status != "canceled" %}
+                            </h5>
 
-                        <a href="{% url 'edit_appointment' appointment.id %}"
-                           class="btn btn-primary btn-sm">
+                            <!-- Appointment Info -->
+                            <p class="mb-2">
+                                <strong>Start:</strong>
+                                {{ appointment.start_time|date:"Y-m-d H:i" }}
+                            </p>
 
-                            Edit Appointment
+                            <p class="mb-2">
+                                <strong>End:</strong>
+                                {{ appointment.end_time|date:"Y-m-d H:i" }}
+                            </p>
 
-                        </a>
+                            <!-- Status -->
+                            <p class="mb-4">
 
-                    {% endif %}
+                                <strong>Status:</strong>
+
+                                {% if appointment.status == "pending" %}
+
+                                    <span class="badge bg-warning text-dark">
+                                        Pending
+                                    </span>
+
+                                {% elif appointment.status == "approved" %}
+
+                                    <span class="badge bg-primary">
+                                        Approved
+                                    </span>
+
+                                {% elif appointment.status == "done" %}
+
+                                    <span class="badge bg-success">
+                                        Done
+                                    </span>
+
+                                {% elif appointment.status == "canceled" %}
+
+                                    <span class="badge bg-danger">
+                                        Canceled
+                                    </span>
+
+                                {% endif %}
+
+                            </p>
+
+                            <!-- Actions -->
+                            <div class="d-flex gap-2">
+
+                                {% if appointment.status != "done" and appointment.status != "canceled" %}
+
+                                    <!-- Edit -->
+                                    <a href="{% url 'edit_appointment' appointment.id %}"
+                                       class="btn btn-primary btn-sm">
+
+                                        Edit
+
+                                    </a>
+
+                                {% endif %}
+
+                                {% if appointment.status != "done" %}
+
+                                    <!-- Delete -->
+                                    <a href="{% url 'delete_appointment' appointment.id %}"
+                                       class="btn btn-danger btn-sm">
+
+                                        Delete
+
+                                    </a>
+
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
@@ -53,8 +130,10 @@
 
     {% else %}
 
-        <div class="alert alert-info">
+        <div class="alert alert-info shadow-sm">
+
             No appointments found.
+
         </div>
 
     {% endif %}
