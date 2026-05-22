@@ -8,6 +8,9 @@ from .models import Appointment
 from accounts.models import StudentProfile
 
 
+# ───────────────────────────────
+# CREATE APPOINTMENT (with conflict check)
+# ───────────────────────────────
 @login_required
 def create_appointment(request):
 
@@ -20,15 +23,31 @@ def create_appointment(request):
         if form.is_valid():
 
             appointment = form.save(commit=False)
-
             appointment.student = student
 
+            # منع الحجز في الماضي
             if appointment.start_time < timezone.now():
-                form.add_error("start_time", "You cannot book an appointment in the past.")
+                form.add_error(
+                    "start_time",
+                    "You cannot book an appointment in the past."
+                )
+                return render(request, "appointments/create.html", {"form": form})
+
+            # منع التداخل مع مواعيد نفس advisor
+            conflict = Appointment.objects.filter(
+                advisor=appointment.advisor,
+                start_time__lt=appointment.end_time,
+                end_time__gt=appointment.start_time
+            ).exclude(status="canceled").exists()
+
+            if conflict:
+                form.add_error(
+                    None,
+                    "This advisor already has an appointment during this time."
+                )
                 return render(request, "appointments/create.html", {"form": form})
 
             appointment.save()
-
             return redirect("student_appointments")
 
     else:
@@ -38,6 +57,10 @@ def create_appointment(request):
         "form": form
     })
 
+
+# ───────────────────────────────
+# STUDENT APPOINTMENTS
+# ───────────────────────────────
 @login_required
 def student_appointments(request):
 
@@ -51,6 +74,10 @@ def student_appointments(request):
         "appointments": appointments
     })
 
+
+# ───────────────────────────────
+# ADVISOR APPOINTMENTS
+# ───────────────────────────────
 @login_required
 def advisor_appointments(request):
 
@@ -64,6 +91,11 @@ def advisor_appointments(request):
         "appointments": appointments
     })
 
+
+# ───────────────────────────────
+# UPDATE STATUS (advisor)
+# ───────────────────────────────
+@login_required
 def update_appointment_status(request, appointment_id, new_status):
 
     if request.method != "POST":
@@ -86,6 +118,9 @@ def update_appointment_status(request, appointment_id, new_status):
     return redirect("advisor_appointments")
 
 
+# ───────────────────────────────
+# ADVISOR CALENDAR EVENTS
+# ───────────────────────────────
 @login_required
 def advisor_calendar_events(request):
 
@@ -96,7 +131,6 @@ def advisor_calendar_events(request):
     events = []
 
     for appt in appointments:
-
 
         color = {
             "pending": "#f39c12",
@@ -120,6 +154,103 @@ def advisor_calendar_events(request):
     return JsonResponse(events, safe=False)
 
 
+# ───────────────────────────────
+# CALENDAR VIEW
+# ───────────────────────────────
 @login_required
 def advisor_calendar_view(request):
     return render(request, "appointments/advisor_calendar.html")
+
+
+# ───────────────────────────────
+# EDIT APPOINTMENT (with conflict check)
+# ───────────────────────────────
+@login_required
+def edit_appointment(request, appointment_id):
+
+    student = request.user.student_profile
+
+    appointment = get_object_or_404(
+        Appointment,
+        id=appointment_id,
+        student=student
+    )
+
+    if appointment.status in ["done", "canceled"]:
+        return redirect("student_appointments")
+
+    if request.method == "POST":
+
+        form = AppointmentForm(
+            request.POST,
+            instance=appointment
+        )
+
+        if form.is_valid():
+
+            updated = form.save(commit=False)
+
+            # منع الماضي
+            if updated.start_time < timezone.now():
+                form.add_error(
+                    "start_time",
+                    "You cannot select a past time."
+                )
+                return render(request, "appointments/edit.html", {"form": form})
+
+            # منع التداخل (مع استثناء نفس الموعد)
+            conflict = Appointment.objects.filter(
+                advisor=updated.advisor,
+                start_time__lt=updated.end_time,
+                end_time__gt=updated.start_time
+            ).exclude(
+                id=updated.id
+            ).exclude(
+                status="canceled"
+            ).exists()
+
+            if conflict:
+                form.add_error(
+                    None,
+                    "This advisor already has an appointment during this time."
+                )
+                return render(request, "appointments/edit.html", {"form": form})
+
+            updated.status = "pending"
+            updated.save()
+
+            return redirect("student_appointments")
+
+    else:
+        form = AppointmentForm(instance=appointment)
+
+    return render(request, "appointments/edit.html", {
+        "form": form,
+        "appointment": appointment
+    })
+
+
+# ───────────────────────────────
+# DELETE APPOINTMENT
+# ───────────────────────────────
+@login_required
+def delete_appointment(request, appointment_id):
+
+    student = request.user.student_profile
+
+    appointment = get_object_or_404(
+        Appointment,
+        id=appointment_id,
+        student=student
+    )
+
+    if appointment.status == "done":
+        return redirect("student_appointments")
+
+    if request.method == "POST":
+        appointment.delete()
+        return redirect("student_appointments")
+
+    return render(request, "appointments/delete.html", {
+        "appointment": appointment
+    })
