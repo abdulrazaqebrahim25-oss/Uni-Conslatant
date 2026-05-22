@@ -122,4 +122,59 @@ def advisor_calendar_events(request):
 
 @login_required
 def advisor_calendar_view(request):
-    return render(request, "appointments/advisor_calendar.html")
+    return render(request, "appointments/advisor_calendar.html") 
+
+
+@login_required
+def edit_appointment(request, appointment_id):
+
+    student = request.user.student_profile
+
+    appointment = get_object_or_404(
+        Appointment,
+        id=appointment_id,
+        student=student
+    )
+
+   
+    if appointment.status in ["done", "canceled"]:
+        return redirect("student_appointments")
+
+    if request.method == "POST":
+
+        form = AppointmentForm(
+            request.POST,
+            instance=appointment
+        )
+
+        if form.is_valid():
+
+            updated_appointment = form.save(commit=False)
+
+      
+            if updated_appointment.start_time < timezone.now():
+
+                form.add_error(
+                    "start_time",
+                    "You cannot select a past time."
+                )
+
+                return render(request,
+                              "appointments/edit.html",
+                              {"form": form})
+
+      
+            updated_appointment.status = "pending"
+
+            updated_appointment.save()
+
+            return redirect("student_appointments")
+
+    else:
+
+        form = AppointmentForm(instance=appointment)
+
+    return render(request, "appointments/edit.html", {
+        "form": form,
+        "appointment": appointment
+    })
