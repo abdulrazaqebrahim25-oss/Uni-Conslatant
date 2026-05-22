@@ -167,7 +167,7 @@ function removeTypingIndicator() {
 }
 
 // =======================
-// Render Plan
+// Render Plan (updated: shows semester type, course name + credits)
 // =======================
 function renderPlan(plan) {
 
@@ -177,18 +177,24 @@ function renderPlan(plan) {
     if (!plan.semesters) return;
 
     plan.semesters.forEach(sem => {
-
         const card = document.createElement("div");
         card.className = "card mb-2";
 
         const body = document.createElement("div");
         body.className = "card-body";
 
-        body.innerHTML = `<b>Semester ${sem.semester}</b>`;
+        // Display semester type (Fall, Spring, Summer) and number
+        const semesterType = sem.semester_type ? sem.semester_type.charAt(0).toUpperCase() + sem.semester_type.slice(1) : "Semester";
+        let semesterHtml = `<b>${semesterType} ${sem.semester}</b>`;
+        if (sem.total_credits) {
+            semesterHtml += ` <span class="text-muted small">(${sem.total_credits} credits)</span>`;
+        }
+        body.innerHTML = semesterHtml;
 
+        // Each course is an object: {code, name, credit}
         sem.courses.forEach(c => {
             const item = document.createElement("div");
-            item.innerText = "• " + c;
+            item.innerText = `• ${c.code} - ${c.name} (${c.credit} credits)`;
             body.appendChild(item);
         });
 
@@ -197,14 +203,9 @@ function renderPlan(plan) {
     });
 
     if (plan.validation_errors?.length) {
-
         const alertBox = document.createElement("div");
         alertBox.className = "alert alert-danger mt-3";
-
-        alertBox.innerHTML =
-            "<b>Validation Issues</b><br>" +
-            plan.validation_errors.join("<br>");
-
+        alertBox.innerHTML = "<b>Validation Issues</b><br>" + plan.validation_errors.join("<br>");
         container.appendChild(alertBox);
     }
 }

@@ -9,7 +9,7 @@ from services.deepseek_service import deepseek_chat
 
 from .models import Message
 from main_app.models import MajorCourse, Course
-from accounts.models import StudentProfile  # Import StudentProfile
+from accounts.models import StudentProfile
 
 import json
 import re
@@ -176,7 +176,6 @@ def get_completed_course_codes(user):
     profile = get_student_profile(user)
     
     if profile:
-        # Get from completed_courses ManyToMany field
         completed_courses = profile.completed_courses.all()
         for course in completed_courses:
             completed_codes.add(course.code)
@@ -205,23 +204,19 @@ def validate_course_selection(user, requested_codes):
     already_selected = set()
 
     for code in requested_codes:
-        # Check if course exists
         try:
             course = Course.objects.get(code=code)
         except Course.DoesNotExist:
             errors.append(f"{code}: course does not exist")
             continue
 
-        # Check if already completed
         if code in completed_codes:
             errors.append(f"{code}: already completed")
 
-        # Check for duplicates
         if code in already_selected:
             errors.append(f"{code}: duplicated in plan")
         already_selected.add(code)
 
-        # Check prerequisites
         prereqs = course.prerequisites.all()
         missing = []
         for prereq in prereqs:
@@ -235,28 +230,40 @@ def validate_course_selection(user, requested_codes):
 
 
 def validate_semester_plan(user, semesters):
-    """Validate complete semester plan for credit limits and prerequisites"""
+    """Validate semester plan including credit limits per semester type and prerequisites."""
     
     errors = []
     completed_codes = get_completed_course_codes(user)
     taken = set(completed_codes)
-    MAX_CREDITS = 18
-
+    
+    # Credit limits per semester type
+    limits = {
+        'fall': {'min': 12, 'max': 18},
+        'spring': {'min': 12, 'max': 18},
+        'summer': {'min': 0, 'max': 9}
+    }
+    
     for sem in semesters:
         semester_number = sem.get("semester")
+        semester_type = sem.get("semester_type", 'fall')
         semester_courses = sem.get("courses", [])
-
+        
         # Calculate credits
         semester_credits = calculate_semester_credits(semester_courses)
         sem["total_credits"] = semester_credits
-
-        # Check credit limit
-        if semester_credits > MAX_CREDITS:
+        
+        # Check credit limits
+        if semester_credits < limits[semester_type]['min']:
             errors.append(
-                f"Semester {semester_number}: exceeds maximum credits "
-                f"({semester_credits}/{MAX_CREDITS})"
+                f"Semester {semester_number} ({semester_type}): below minimum credits "
+                f"({semester_credits}/{limits[semester_type]['min']})"
             )
-
+        if semester_credits > limits[semester_type]['max']:
+            errors.append(
+                f"Semester {semester_number} ({semester_type}): exceeds maximum credits "
+                f"({semester_credits}/{limits[semester_type]['max']})"
+            )
+        
         # Validate each course
         for code in semester_courses:
             try:
@@ -264,27 +271,21 @@ def validate_semester_plan(user, semesters):
             except Course.DoesNotExist:
                 errors.append(f"{code}: course does not exist")
                 continue
-
-            # Check if already completed
+            
             if code in completed_codes:
                 errors.append(f"{code}: already completed")
-
-            # Check prerequisites
+            
+            # Prerequisites
             prereqs = course.prerequisites.all()
-            missing = []
-            for prereq in prereqs:
-                if prereq.code not in taken:
-                    missing.append(prereq.code)
-
+            missing = [p.code for p in prereqs if p.code not in taken]
             if missing:
                 errors.append(
                     f"Semester {semester_number} - {code}: missing prerequisites "
                     f"({', '.join(missing)})"
                 )
-
-        # Mark semester courses as taken for future prerequisites
+        
         taken.update(semester_courses)
-
+    
     return errors
 
 
@@ -308,14 +309,14 @@ def find_course_semester(plan, course_code):
     return None
 
 
-def get_or_create_semester(plan, semester_number):
-    """Get existing semester or create new one"""
+def get_or_create_semester(plan, semester_number, semester_type='fall'):
+    """Get existing semester or create new one with type"""
     
     for sem in plan:
         if sem.get("semester") == semester_number:
             return sem
     
-    new_sem = {"semester": semester_number, "courses": []}
+    new_sem = {"semester": semester_number, "semester_type": semester_type, "courses": []}
     plan.append(new_sem)
     plan.sort(key=lambda x: x["semester"])
     return new_sem
@@ -338,65 +339,102 @@ def remove_duplicate_courses(plan):
 def move_course_to_semester(plan, course_code, target_semester):
     """Move a course from its current semester to a target semester"""
     
-    # Remove from current semester
     for sem in plan:
         if course_code in sem["courses"]:
             sem["courses"].remove(course_code)
     
-    # Add to target semester
-    target = get_or_create_semester(plan, target_semester)
+    target = get_or_create_semester(plan, target_semester, 'fall')
     if course_code not in target["courses"]:
         target["courses"].append(course_code)
     
     return plan
 
 
-def repair_semester_plan(user, semesters):
-    """Repair a semester plan by fixing prerequisite ordering"""
+def enforce_credit_limits(plan):
+    """Adjust courses between semesters to respect min/max credits per type."""
+    limits = {'fall': {'min': 12, 'max': 18}, 'spring': {'min': 12, 'max': 18}, 'summer': {'min': 0, 'max': 9}}
+    plan.sort(key=lambda x: x["semester"])
     
+    for i, sem in enumerate(plan):
+        sem_type = sem.get("semester_type", 'fall')
+        total_credits = calculate_semester_credits(sem["courses"])
+        if total_credits < limits[sem_type]['min']:
+            # Borrow from next semester
+            if i+1 < len(plan):
+                next_sem = plan[i+1]
+                for code in next_sem["courses"][:]:
+                    try:
+                        course_credit = Course.objects.get(code=code).credit
+                    except Course.DoesNotExist:
+                        continue
+                    if total_credits + course_credit <= limits[sem_type]['max']:
+                        sem["courses"].append(code)
+                        next_sem["courses"].remove(code)
+                        total_credits += course_credit
+                        if total_credits >= limits[sem_type]['min']:
+                            break
+        elif total_credits > limits[sem_type]['max']:
+            # Move excess to next semester (or create new)
+            excess = total_credits - limits[sem_type]['max']
+            moved = 0
+            for code in reversed(sem["courses"][:]):
+                try:
+                    course_credit = Course.objects.get(code=code).credit
+                except Course.DoesNotExist:
+                    continue
+                if moved + course_credit <= excess:
+                    sem["courses"].remove(code)
+                    if i+1 < len(plan):
+                        plan[i+1]["courses"].insert(0, code)
+                    else:
+                        plan.append({"semester": sem["semester"]+1, "semester_type": 'fall', "courses": [code]})
+                    moved += course_credit
+                    if moved >= excess:
+                        break
+    
+    # Re-number semesters
+    for idx, sem in enumerate(plan, 1):
+        sem["semester"] = idx
+    # Remove empty semesters
+    plan = [sem for sem in plan if sem.get("courses")]
+    return plan
+
+
+def repair_semester_plan(user, semesters):
+    """Repair semester plan: prerequisites + credit limits."""
     # Remove duplicates
     semesters = remove_duplicate_courses(semesters)
     completed = get_completed_course_codes(user)
     
+    # Prerequisite repair
     changed = True
     max_iterations = 20
     iteration = 0
-    
     while changed and iteration < max_iterations:
         changed = False
         iteration += 1
         semesters.sort(key=lambda x: x["semester"])
-        
         for sem in semesters:
             current_semester = sem["semester"]
             courses = list(sem.get("courses", []))
-            
             for code in courses:
                 try:
                     course = Course.objects.get(code=code)
                 except Course.DoesNotExist:
                     continue
-                
-                prereqs = course.prerequisites.all()
-                for prereq in prereqs:
+                for prereq in course.prerequisites.all():
                     prereq_code = prereq.code
-                    
-                    # Skip if already completed
                     if prereq_code in completed:
                         continue
-                    
                     prereq_sem = find_course_semester(semesters, prereq_code)
-                    
-                    # Missing prerequisite - add it
                     if prereq_sem is None:
                         target_semester = max(1, current_semester - 1)
-                        target = get_or_create_semester(semesters, target_semester)
+                        target = get_or_create_semester(semesters, target_semester, 'fall')
                         if prereq_code not in target["courses"]:
                             target["courses"].append(prereq_code)
                             changed = True
                     else:
                         prereq_semester = prereq_sem["semester"]
-                        # Prerequisite is scheduled too late
                         if prereq_semester >= current_semester:
                             new_semester = max(1, current_semester - 1)
                             move_course_to_semester(semesters, prereq_code, new_semester)
@@ -404,13 +442,46 @@ def repair_semester_plan(user, semesters):
     
     # Remove empty semesters
     semesters = [sem for sem in semesters if sem.get("courses")]
-    
-    # Re-number semesters sequentially
+    # Re-number semesters
     semesters.sort(key=lambda x: x["semester"])
     for index, sem in enumerate(semesters, start=1):
         sem["semester"] = index
     
+    # Enforce credit limits
+    semesters = enforce_credit_limits(semesters)
     return semesters
+
+
+# =====================================================
+# ENRICH PLAN WITH COURSE NAMES AND CREDITS
+# =====================================================
+
+def enrich_plan_with_course_details(semesters):
+    """Convert semester.courses from list of course codes to list of objects with code, name, credit."""
+    enriched = []
+    for sem in semesters:
+        new_courses = []
+        for code in sem.get("courses", []):
+            try:
+                course = Course.objects.get(code=code)
+                new_courses.append({
+                    "code": course.code,
+                    "name": course.name,
+                    "credit": course.credit
+                })
+            except Course.DoesNotExist:
+                new_courses.append({
+                    "code": code,
+                    "name": "Unknown Course",
+                    "credit": 0
+                })
+        enriched.append({
+            "semester": sem["semester"],
+            "semester_type": sem.get("semester_type", "fall"),
+            "courses": new_courses,
+            "total_credits": sem.get("total_credits", 0)
+        })
+    return enriched
 
 
 # =====================================================
@@ -431,39 +502,70 @@ def calculate_remaining_credits(user, major_courses):
 
 
 def get_current_study_plan(user):
-    """Get or generate current study plan for the student"""
+    """Generate a study plan respecting min/max credits, including summer semesters."""
     
     completed_codes = get_completed_course_codes(user)
     
-    # Get remaining courses for the major
     major = get_student_major(user)
     if not major:
         return {'semesters': [], 'validation_errors': ['No major assigned']}
     
     major_courses = MajorCourse.objects.filter(major=major).select_related('course')
-    remaining_courses = [mc.course.code for mc in major_courses if mc.course.code not in completed_codes]
+    remaining = []
+    for mc in major_courses:
+        if mc.course.code not in completed_codes:
+            remaining.append({'code': mc.course.code, 'credit': mc.course.credit})
     
-    # Simple distribution of remaining courses across semesters
+    if not remaining:
+        return {'semesters': [], 'validation_errors': []}
+    
+    # Semester cycle: (type, min_credits, max_credits)
+    semester_cycle = [('fall', 12, 18), ('spring', 12, 18), ('summer', 0, 9)]
     suggested_plan = []
-    semester = 1
-    courses_per_semester = max(3, len(remaining_courses) // 8) if remaining_courses else 3
+    semester_number = 1
+    idx = 0
+    total = len(remaining)
     
-    for i in range(0, len(remaining_courses), courses_per_semester):
-        semester_courses = remaining_courses[i:i+courses_per_semester]
-        if semester_courses:
-            suggested_plan.append({
-                'semester': semester,
-                'courses': semester_courses
-            })
-            semester += 1
+    while idx < total:
+        for sem_type, min_cred, max_cred in semester_cycle:
+            if idx >= total:
+                break
+            semester_courses = []
+            semester_credits = 0
+            # Fill up to max credits
+            while idx < total and semester_credits + remaining[idx]['credit'] <= max_cred:
+                semester_courses.append(remaining[idx]['code'])
+                semester_credits += remaining[idx]['credit']
+                idx += 1
+            # If below min and more courses exist, try to add more
+            temp_idx = idx
+            while semester_credits < min_cred and temp_idx < total:
+                if semester_credits + remaining[temp_idx]['credit'] <= max_cred:
+                    semester_courses.append(remaining[temp_idx]['code'])
+                    semester_credits += remaining[temp_idx]['credit']
+                    temp_idx += 1
+                else:
+                    break
+            if temp_idx > idx:
+                idx = temp_idx
+            if semester_courses:
+                suggested_plan.append({
+                    'semester': semester_number,
+                    'semester_type': sem_type,
+                    'courses': semester_courses,
+                    'total_credits': semester_credits
+                })
+                semester_number += 1
     
-    # Validate the suggested plan
-    validation_errors = []
-    if suggested_plan:
-        validation_errors = validate_semester_plan(user, suggested_plan)
+    # Validate
+    simple_plan = [{'semester': p['semester'], 'semester_type': p['semester_type'], 'courses': p['courses']} for p in suggested_plan]
+    validation_errors = validate_semester_plan(user, simple_plan) if simple_plan else []
+    
+    # Enrich with course names/credits
+    enriched_plan = enrich_plan_with_course_details(simple_plan)
     
     return {
-        'semesters': suggested_plan,
+        'semesters': enriched_plan,
         'validation_errors': validation_errors
     }
 
@@ -471,18 +573,12 @@ def get_current_study_plan(user):
 def get_welcome_message(user):
     """Generate a personalized welcome message for the student"""
     
-    # Get student profile
     profile = get_student_profile(user)
-    
-    # Get completed courses
     completed_codes = get_completed_course_codes(user)
-    
-    # Get major
     major = get_student_major(user)
     
-    # If no profile or major, show setup message
     if not profile:
-        welcome_text = f"""Hello! I'm your AI academic planning assistant.
+        welcome_text = """Hello! I'm your AI academic planning assistant.
 
 ⚠️ **Student profile not found**
 
@@ -530,25 +626,13 @@ How can I help you today?"""
             }
         }
     
-    # Get major courses
     major_courses = MajorCourse.objects.filter(major=major).select_related('course')
-    
-    # Calculate progress
     total_courses = major_courses.count()
     completed_count = len([c for c in major_courses if c.course.code in completed_codes])
-    
-    if total_courses > 0:
-        progress = (completed_count / total_courses) * 100
-    else:
-        progress = 0
-    
-    # Get remaining credits
+    progress = (completed_count / total_courses) * 100 if total_courses > 0 else 0
     remaining_credits = calculate_remaining_credits(user, major_courses)
-    
-    # Get first course code for example
     first_course_code = major_courses[0].course.code if major_courses else "COURSE101"
     
-    # Build welcome message
     welcome_text = f"""Hello! I'm your AI academic planning assistant.
 
 📊 **Your Academic Overview:**
@@ -572,7 +656,6 @@ How can I help you today?"""
 
 How can I help you today?"""
     
-    # Get current plan
     initial_plan = get_current_study_plan(user)
     
     return {
@@ -597,9 +680,7 @@ def ai_chat_page(request, user_id):
     
     other_user = get_object_or_404(User, id=user_id)
     
-    # Authorization checks
     if request.user.role == 'advisor':
-        # Check if advisor has this student
         try:
             advisor_profile = request.user.advisor_profile
             student_profile = other_user.student_profile
@@ -613,13 +694,12 @@ def ai_chat_page(request, user_id):
     else:
         return HttpResponse("Unauthorized", status=403)
     
-    # Generate welcome message
     try:
         welcome_message = get_welcome_message(other_user)
     except Exception as e:
         print(f"Error generating welcome message: {e}")
         welcome_message = {
-            'text': f"Hello! I'm your AI academic planning assistant. How can I help you today?",
+            'text': "Hello! I'm your AI academic planning assistant. How can I help you today?",
             'plan': {'semesters': [], 'validation_errors': []},
             'stats': {
                 'completed': 0,
@@ -642,11 +722,9 @@ def ai_chat_api(request, user_id):
     
     user = get_object_or_404(User, id=user_id)
     
-    # Authorization
     if request.user != user and not request.user.is_staff:
         return JsonResponse({"error": "Unauthorized"}, status=403)
     
-    # Parse request
     try:
         body = json.loads(request.body)
         user_message = body.get("message", "").strip()
@@ -657,15 +735,10 @@ def ai_chat_api(request, user_id):
     if not user_message:
         return JsonResponse({"error": "Message is required"}, status=400)
     
-    # Get major safely
     major = get_student_major(user)
-    
     if not major:
-        return JsonResponse({
-            "error": "No major assigned. Please update your profile first."
-        }, status=400)
+        return JsonResponse({"error": "No major assigned. Please update your profile first."}, status=400)
     
-    # Load major courses
     major_courses = (
         MajorCourse.objects
         .filter(major=major)
@@ -689,11 +762,9 @@ def ai_chat_api(request, user_id):
             f"Prerequisites: {prereq_codes})"
         )
     
-    # Completed courses
     completed_codes = get_completed_course_codes(user)
     completed_text = ", ".join(list(completed_codes)[:20]) if completed_codes else "None"
     
-    # System prompt
     system_message = {
         "role": "system",
         "content": """
@@ -704,7 +775,8 @@ Rules:
 - Respect prerequisites strictly
 - Completed courses cannot be changed
 - Never schedule courses before prerequisites
-- Maximum 18 credits per semester
+- Maximum credits: Fall/Spring 18, Summer 9
+- Minimum credits: Fall/Spring 12, Summer 0
 - Be concise and structured
 - Always mention course codes clearly
 
@@ -712,24 +784,22 @@ IMPORTANT:
 You must ALWAYS return valid JSON only.
 
 Response format:
-
 {
   "message": "Short explanation here",
   "semesters": [
     {
       "semester": 1,
+      "semester_type": "fall",
       "courses": ["CS101", "MATH101"]
     }
   ]
 }
 
-Do not include markdown.
-Do not include triple backticks.
-Return JSON only.
+Valid semester_type: "fall", "spring", "summer". 
+Do not include markdown. Return JSON only.
 """
     }
     
-    # Student context
     student_data_message = {
         "role": "system",
         "content": f"""
@@ -743,12 +813,10 @@ Completed Courses:
 """
     }
     
-    # Build AI messages
     messages = [system_message, student_data_message]
     messages.extend(conversation)
     messages.append({"role": "user", "content": user_message})
     
-    # AI request
     try:
         result = deepseek_chat(messages)
         choices = result.get("choices")
@@ -758,7 +826,6 @@ Completed Courses:
         
         ai_raw = choices[0]["message"]["content"].strip()
         
-        # Parse AI JSON
         try:
             ai_data = json.loads(ai_raw)
         except json.JSONDecodeError:
@@ -773,18 +840,28 @@ Completed Courses:
                 "error": "Invalid semester structure"
             }, status=500)
         
-        # Repair plan
-        repaired_semesters = repair_semester_plan(user, semesters)
-        ai_data["semesters"] = repaired_semesters
+        # Ensure each semester has semester_type
+        for sem in semesters:
+            if "semester_type" not in sem:
+                sem["semester_type"] = "fall"
         
-        # Validate repaired plan
-        validation_errors = validate_semester_plan(user, repaired_semesters)
-        ai_data["validation_errors"] = validation_errors
+        # Repair plan (prerequisites + credit limits)
+        repaired_semesters = repair_semester_plan(user, semesters)
+        
+        # Prepare for validation and enrichment
+        simple_plan = [{
+            "semester": s["semester"],
+            "semester_type": s.get("semester_type", "fall"),
+            "courses": s["courses"]
+        } for s in repaired_semesters]
+        
+        validation_errors = validate_semester_plan(user, simple_plan)
+        enriched_plan = enrich_plan_with_course_details(simple_plan)
+        final_plan = {"semesters": enriched_plan, "validation_errors": validation_errors}
         
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
     
-    # Final response
     return JsonResponse({
         "user_message": {
             "role": "user",
@@ -794,5 +871,5 @@ Completed Courses:
             "role": "assistant",
             "content": ai_data.get("message", "")
         },
-        "plan": ai_data
+        "plan": final_plan
     })
