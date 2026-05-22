@@ -24,8 +24,35 @@ def create_appointment(request):
             appointment.student = student
 
             if appointment.start_time < timezone.now():
-                form.add_error("start_time", "You cannot book an appointment in the past.")
-                return render(request, "appointments/create.html", {"form": form})
+
+                form.add_error(
+                    "start_time",
+                    "You cannot book an appointment in the past."
+                )
+
+                return render(request, "appointments/create.html", {
+                    "form": form
+                })
+
+            overlapping = Appointment.objects.filter(
+                advisor=appointment.advisor
+            ).filter(
+                start_time__lt=appointment.end_time,
+                end_time__gt=appointment.start_time
+            ).exclude(
+                status="canceled"
+            )
+
+            if overlapping.exists():
+
+                form.add_error(
+                    None,
+                    "This advisor already has another appointment during this time."
+                )
+
+                return render(request, "appointments/create.html", {
+                    "form": form
+                })
 
             appointment.save()
 
@@ -37,6 +64,7 @@ def create_appointment(request):
     return render(request, "appointments/create.html", {
         "form": form
     })
+
 
 @login_required
 def student_appointments(request):
@@ -51,6 +79,7 @@ def student_appointments(request):
         "appointments": appointments
     })
 
+
 @login_required
 def advisor_appointments(request):
 
@@ -64,6 +93,8 @@ def advisor_appointments(request):
         "appointments": appointments
     })
 
+
+@login_required
 def update_appointment_status(request, appointment_id, new_status):
 
     if request.method != "POST":
@@ -91,12 +122,13 @@ def advisor_calendar_events(request):
 
     advisor = request.user.advisor_profile
 
-    appointments = Appointment.objects.filter(advisor=advisor)
+    appointments = Appointment.objects.filter(
+        advisor=advisor
+    )
 
     events = []
 
     for appt in appointments:
-
 
         color = {
             "pending": "#f39c12",
