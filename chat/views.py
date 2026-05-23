@@ -833,8 +833,11 @@ Completed Courses:
                 "error": "AI returned invalid JSON",
                 "raw": ai_raw
             }, status=500)
+
+        semesters = ai_data.get("semesters")
+        if semesters is None:
+            semesters = []
         
-        semesters = ai_data.get("semesters", [])
         if not isinstance(semesters, list):
             return JsonResponse({
                 "error": "Invalid semester structure"
