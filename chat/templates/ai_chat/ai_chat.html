@@ -172,40 +172,86 @@ function removeTypingIndicator() {
 function renderPlan(plan) {
 
     const container = document.getElementById("plan-container");
+
+    // DO NOT clear old plan unless new semesters exist
+    if (!plan || !plan.semesters || !plan.semesters.length) {
+
+        // Still show validation errors if they exist
+        if (plan?.validation_errors?.length) {
+
+            const alertBox = document.createElement("div");
+
+            alertBox.className = "alert alert-danger mt-3";
+
+            alertBox.innerHTML =
+                "<b>Validation Issues</b><br>" +
+                plan.validation_errors.join("<br>");
+
+            container.appendChild(alertBox);
+        }
+
+        return;
+    }
+
+    // Only now clear old content
     container.innerHTML = "";
 
-    if (!plan.semesters) return;
-
     plan.semesters.forEach(sem => {
+
         const card = document.createElement("div");
         card.className = "card mb-2";
 
         const body = document.createElement("div");
         body.className = "card-body";
 
-        // Display semester type (Fall, Spring, Summer) and number
-        const semesterType = sem.semester_type ? sem.semester_type.charAt(0).toUpperCase() + sem.semester_type.slice(1) : "Semester";
-        let semesterHtml = `<b>${semesterType} ${sem.semester}</b>`;
+        const semesterType =
+            sem.semester_type
+                ? sem.semester_type.charAt(0).toUpperCase() +
+                  sem.semester_type.slice(1)
+                : "Semester";
+
+        let semesterHtml =
+            `<b>${semesterType} ${sem.semester}</b>`;
+
         if (sem.total_credits) {
-            semesterHtml += ` <span class="text-muted small">(${sem.total_credits} credits)</span>`;
+            semesterHtml +=
+                ` <span class="text-muted small">(${sem.total_credits} credits)</span>`;
         }
+
         body.innerHTML = semesterHtml;
 
-        // Each course is an object: {code, name, credit}
-        sem.courses.forEach(c => {
-            const item = document.createElement("div");
-            item.innerText = `• ${c.code} - ${c.name} (${c.credit} credits)`;
-            body.appendChild(item);
-        });
+        // Safety check
+        if (sem.courses && sem.courses.length) {
+
+            sem.courses.forEach(c => {
+
+                const item = document.createElement("div");
+
+                item.innerText =
+                    `• ${c.code} - ${c.name} (${c.credit} credits)`;
+
+                body.appendChild(item);
+
+            });
+
+        }
 
         card.appendChild(body);
         container.appendChild(card);
+
     });
 
+    // Validation errors
     if (plan.validation_errors?.length) {
+
         const alertBox = document.createElement("div");
+
         alertBox.className = "alert alert-danger mt-3";
-        alertBox.innerHTML = "<b>Validation Issues</b><br>" + plan.validation_errors.join("<br>");
+
+        alertBox.innerHTML =
+            "<b>Validation Issues</b><br>" +
+            plan.validation_errors.join("<br>");
+
         container.appendChild(alertBox);
     }
 }
@@ -273,7 +319,7 @@ document.getElementById("chat-form").addEventListener("submit", async (e) => {
         appendMessage(data.ai_message.content, "ai");
         conversation.push(data.ai_message);
 
-        if (data.plan) {
+        if (data.plan && data.plan.semesters) {
             renderPlan(data.plan);
         }
 
