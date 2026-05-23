@@ -2,6 +2,11 @@
 
 {% block content %}
 
+<a href="{% url 'advisors' %}"
+class="btn btn-outline-secondary btn-sm mb-3">
+← Back to Advisors
+</a>
+
 <div class="chat-wrapper">
 
     <!-- Header -->
@@ -21,7 +26,7 @@
 
         <a href="{% url 'chat_list' %}"
            class="btn btn-light btn-sm">
-            Back
+            View All Messages
         </a>
 
     </div>

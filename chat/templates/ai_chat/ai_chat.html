@@ -2,6 +2,11 @@
 
 {% block content %}
 
+<a href="{% url 'dashboard' %}"
+class="btn btn-outline-secondary btn-sm mb-3">
+← Back to dashboard
+</a>
+
 <div class="container py-4">
 
     <!-- Header -->
@@ -15,11 +20,6 @@
                 Smart academic assistant for study planning
             </p>
         </div>
-
-        <a href="{% url 'chat_list' %}" class="btn btn-outline-secondary">
-            ← Back
-        </a>
-
     </div>
 
     <!-- Stats -->
