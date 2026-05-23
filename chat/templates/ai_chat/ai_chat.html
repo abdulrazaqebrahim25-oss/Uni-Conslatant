@@ -60,42 +60,45 @@ class="btn btn-outline-secondary btn-sm mb-3">
 
     </div>
 
-    <!-- Chat -->
-    <div class="card mb-3">
-        <div class="card-header fw-bold">
-            Chat
-        </div>
-        <div id="chat-box" class="card-body" style="height: 400px; overflow-y: auto;"></div>
+<!-- Chat -->
+<div class="card mb-3">
+    <div class="card-header fw-bold">
+        Chat
     </div>
 
-    <!-- Study Plan -->
-    <div class="card mb-3">
-        <div class="card-header fw-bold">
-            Study Plan
-        </div>
-        <div id="plan-container" class="card-body"></div>
+    <div id="chat-box"
+         class="card-body"
+         style="height: 400px; overflow-y: auto;">
+    </div>
+</div>
+
+<!-- Input -->
+<div class="card mb-3">
+    <div class="card-body">
+
+        <form id="chat-form" class="d-flex gap-2">
+            {% csrf_token %}
+
+            <input type="text"
+                   id="user-input"
+                   class="form-control"
+                   placeholder="Type your message...">
+
+            <button class="btn btn-primary">
+                Send
+            </button>
+        </form>
+
+    </div>
+</div>
+
+<!-- Study Plan -->
+<div class="card mb-3">
+    <div class="card-header fw-bold">
+        Study Plan
     </div>
 
-    <!-- Input -->
-    <div class="card">
-        <div class="card-body">
-
-            <form id="chat-form" class="d-flex gap-2">
-                {% csrf_token %}
-
-                <input type="text"
-                       id="user-input"
-                       class="form-control"
-                       placeholder="Type your message...">
-
-                <button class="btn btn-primary">
-                    Send
-                </button>
-            </form>
-
-        </div>
-    </div>
-
+    <div id="plan-container" class="card-body"></div>
 </div>
 
 <!-- SAFE JSON -->
